@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\System">
+      <UniqueIdentifier>{e444ed13-a54f-49c2-aae9-8d0c517b4a49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\System">
+      <UniqueIdentifier>{10db0163-57ff-4b41-9c01-3b09f09d90d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Obsolete Files">
+      <UniqueIdentifier>{331cfa44-dade-47aa-aae3-e8a013acbece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Obsolete Files\Header Files">
+      <UniqueIdentifier>{8b784b6f-cc31-4d73-8193-353f52bf3e58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Obsolete Files\Source Files">
+      <UniqueIdentifier>{1a6f1670-5575-47c2-9f37-d1378bfce9dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Robot Systems">
+      <UniqueIdentifier>{606bbfe4-8ec9-4f44-97e4-e6f84cc4d6a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Robot Behaviour">
+      <UniqueIdentifier>{306fa816-0390-4a4a-af9e-86330549ae8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Robot Systems">
+      <UniqueIdentifier>{0499b0b5-aa81-43b7-9fdf-565eb3ef1048}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Robot Behaviour">
+      <UniqueIdentifier>{50c341ed-96eb-46ae-aa8a-7466a63288fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{c1cd61d7-ee94-471e-944e-388a7fcaecc3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\avoid.cpp">
+      <Filter>Source Files\Robot Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\follow.cpp">
+      <Filter>Obsolete Files\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\wander.cpp">
+      <Filter>Obsolete Files\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\path.cpp">
+      <Filter>Source Files\Robot Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pathfinding.cpp">
+      <Filter>Source Files\Robot Systems</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\avoid.h">
+      <Filter>Header Files\Robot Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils.h">
+      <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\baseAction.h">
+      <Filter>Header Files\Robot Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sensor.h">
+      <Filter>Header Files\Robot Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="include\follow.h">
+      <Filter>Obsolete Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\wander.h">
+      <Filter>Obsolete Files\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\node.h">
+      <Filter>Header Files\Robot Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="include\path.h">
+      <Filter>Header Files\Robot Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pathfinding.h">
+      <Filter>Header Files\Robot Systems</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
