@@ -11,7 +11,7 @@ Pathfinding::Pathfinding(const ArMap kMap, ArRobot* kRobot, const ArPose kStartP
 	m_startPose = kStartPose;
 	m_goalPose = kGoalPose;
 
-	m_dNodeDiameter = 550; // 0.55m // Robot Diameter 0.5m
+	m_dNodeDiameter = 250; // 0.1m // Robot Diameter 0.5m
 }
 
 // Creates Nodes for pathfinding
@@ -72,28 +72,25 @@ void Pathfinding::createNodes()
 void Pathfinding::calcAccessibility()
 {
 	std::cerr << "\n Calculating node accessibility... \n";
-
-	// For all Nodes
-	for (std::shared_ptr<Node> node : m_pNodes)
+	
+	// For every line segment in the map
+	for (unsigned int i = 0; i < m_map.getLines()->size(); i++)
 	{
-		//std::cerr
-		//	<< "\n node->index: " << node->index
-		//	<< '\n';
+		// Gets the line at index i
+		ArLineSegment line = m_map.getLines()->at(i);
 	
-		// For every line segment in the map
-		for (unsigned int i = 0; i < m_map.getLines()->size(); i++)
+		// For all Nodes
+		for (std::shared_ptr<Node> node : m_pNodes)
 		{
-			//std::cerr
-			//	<< "\n line i: " << i
-			//	<< '\n';
-	
-			// Gets the line at index i
-			ArLineSegment line = m_map.getLines()->at(i);
-	
-			// If Line intersects Node
-			if (lineIntersectNode(line, node->position))
+			// If Node is accessible
+			if (node->bAccessible)
 			{
-				node->bAccessible = false;
+				// If Node is near line
+				if (nodeNearLine(line, node->position, m_pRobot->getRobotRadius() + 50))
+				{
+					// Node is too close to line: set inaccessible
+					node->bAccessible = false;
+				}
 			}
 		}
 	}
@@ -260,18 +257,22 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode)
 {
 	// Distance from the current Node and open Node
-	double dDistToNode = Utils::magnitude(Vertex(targetNode->position.x - currentNode->position.x, targetNode->position.y - currentNode->position.y));
+	double dDistToNode = Utils::magnitude(Vertex(targetNode->position.x - currentNode->position.x, targetNode->position.y - currentNode->position.y)) * (1/m_dNodeDiameter); // Binds to 1 and ~1.4
 		
-	double dTurnCost;
-
-	sf::Vector2f angleVec; sf::Vector2f angleUnitVec;
-
-	double currentToTargetAngle = 0.0;
-	double parentToCurrentAngle = 0.0;
+	// Sideways = 2 - 1 = 1
+	// Disgonal = 2.8 - 1 = 1.8
+	dDistToNode = (dDistToNode * 2) - 1;
 
 	// If currentNode has a parent
 	if (currentNode->parent != nullptr)
 	{
+		sf::Vector2f angleVec; sf::Vector2f angleUnitVec;
+
+		double dTurnCost;
+
+		double currentToTargetAngle = 0.0;
+		double parentToCurrentAngle = 0.0;
+
 		angleVec = sf::Vector2f(currentNode->position.x, currentNode->position.y) - sf::Vector2f(currentNode->parent->position.x, currentNode->parent->position.y);
 		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
 
@@ -281,14 +282,16 @@ double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Nod
 		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
 		
 		currentToTargetAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
+
+		dTurnCost = parentToCurrentAngle - currentToTargetAngle;
+
+		return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) */ + dTurnCost + currentNode->parent->g;
 	}
 
-	dTurnCost = parentToCurrentAngle - currentToTargetAngle;
-
-	return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) */+ dTurnCost + targetNode->parent->g;
+	return dDistToNode;
 }
 
-bool Pathfinding::lineIntersectNode(const ArLineSegment kLine, const Vertex kNodePos)
+bool Pathfinding::nodeNearLine(const ArLineSegment kLine, const Vertex kNodePos, const double kDistance)
 {
 	// Guide - https://gist.github.com/ChickenProp/3194723
 	// Defines nod upper and lower bounds in world coordinates
@@ -309,7 +312,9 @@ bool Pathfinding::lineIntersectNode(const ArLineSegment kLine, const Vertex kNod
 		// Moves the point along the line
 		point += angleUnitVec;
 
-		if (Utils::pointInArea(point, nodeUpperBounds, nodeLowerBounds))
+		Vertex vecDist(kNodePos.x - point.x, kNodePos.y - point.y);
+
+		if (Utils::magnitude(vecDist) < kDistance)
 		{
 			return true;
 		}
@@ -630,7 +635,7 @@ void Pathfinding::queuePath(std::shared_ptr<Node> targetNode)
 	}
 }
 
-void Pathfinding::draw(sf::RenderTarget& target, sf::Font& font)
+void Pathfinding::draw(sf::RenderTarget& target)
 {
 	// If Nodes initialised
 	if (m_bNodesInit)
@@ -651,21 +656,8 @@ void Pathfinding::draw(sf::RenderTarget& target, sf::Font& font)
 		// NODES
 		rectShape.setSize(sf::Vector2f(m_dNodeDiameter, m_dNodeDiameter)); // Size of Node
 		rectShape.setOutlineColor(sf::Color(150.0f, 150.0f, 150.0f, 255.0f)); // Black Outline
-		rectShape.setOutlineThickness(12.5f); // Outline Thickness
+		rectShape.setOutlineThickness(12.5); // Outline Thickness
 		rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
-
-		// Declares Text object
-		sf::Text text;
-
-		// Sets the Text Font
-		text.setFont(font);
-		// Declares a character size equal to 10% of the Node diameter
-		unsigned int uiCharSize = (unsigned int)(m_dNodeDiameter * 0.25f);
-
-		// Applies the character size to the text
-		text.setCharacterSize(uiCharSize);
-		// Sets text colour
-		text.setColor(sf::Color::Black);
 
 		// For every Node
 		for (std::shared_ptr<Node> node : m_pNodes)
@@ -682,25 +674,6 @@ void Pathfinding::draw(sf::RenderTarget& target, sf::Font& font)
 				rectShape.setPosition(sf::Vector2f(node->position.x - offset.x, Utils::invertDouble(node->position.y) + offset.y)); // Moves rect to position
 
 				target.draw(rectShape);
-
-				std::string sString;
-				sString = "index:(";
-				sString += std::to_string(node->index);
-				sString += ") g:(";
-				sString += std::to_string(node->g);
-				sString += ") h:(";
-				sString += std::to_string(node->h);
-				sString += ") f:(";
-				sString += std::to_string(node->f);
-				sString += ")";
-
-				// Sets text string to Node index
-				//text.setString(sString);
-				text.setString("Test");
-				// Sets position
-				text.setPosition(sf::Vector2f(node->position.x - offset.x, Utils::invertDouble(node->position.y - uiCharSize*0.5) + offset.y));
-
-				target.draw(text);
 			}
 		}
 
