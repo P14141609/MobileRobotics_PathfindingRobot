@@ -639,18 +639,18 @@ void Pathfinding::draw(sf::RenderTarget& target, sf::Font& font)
 		rectShape.setOutlineThickness(12.5f); // Outline Thickness
 		rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
 
-		// Declares a character size equal to 10% of the Node diameter
-		unsigned int uiCharSize = (unsigned int)(m_dNodeDiameter * 0.1f);
-
 		// Declares Text object
 		sf::Text text;
+
 		// Sets the Text Font
-		//text.setFont(font);
+		text.setFont(font);
+		// Declares a character size equal to 10% of the Node diameter
+		unsigned int uiCharSize = (unsigned int)(m_dNodeDiameter * 0.25f);
+
 		// Applies the character size to the text
 		text.setCharacterSize(uiCharSize);
-		// Sets text styling
-		text.setColor(sf::Color::Black); 
-		text.setStyle(sf::Text::Bold);
+		// Sets text colour
+		text.setColor(sf::Color::Black);
 
 		// For every Node
 		for (std::shared_ptr<Node> node : m_pNodes)
@@ -669,20 +669,21 @@ void Pathfinding::draw(sf::RenderTarget& target, sf::Font& font)
 				target.draw(rectShape);
 
 				std::string sString;
-				//sString += "index:(";
-				//sString += std::to_string(node->index);
-				//sString += ") g:(";
-				//sString += std::to_string(node->g);
-				//sString += ") h:(";
-				//sString += std::to_string(node->h);
-				//sString += ") f:(";
-				//sString += std::to_string(node->f);
-				//sString += ")";
+				sString = "index:(";
+				sString += std::to_string(node->index);
+				sString += ") g:(";
+				sString += std::to_string(node->g);
+				sString += ") h:(";
+				sString += std::to_string(node->h);
+				sString += ") f:(";
+				sString += std::to_string(node->f);
+				sString += ")";
 
 				// Sets text string to Node index
 				//text.setString(sString);
+				text.setString("Test");
 				// Sets position
-				text.setPosition(sf::Vector2f(node->position.x, node->position.y - uiCharSize*0.5));
+				text.setPosition(sf::Vector2f(node->position.x - offset.x, Utils::invertDouble(node->position.y - uiCharSize*0.5) + offset.y));
 
 				target.draw(text);
 			}
