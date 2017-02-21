@@ -33,7 +33,7 @@ class Pathfinding
 		// Draws pathfinding info to a display
 		void draw(sf::RenderTarget& target);
 
-		Vertex getViewSize() { return Vertex(m_mapSize.x + m_displayBezel*2, m_mapSize.y + m_displayBezel * 2); }
+		Vertex getViewSize() { return Vertex(m_mapSize.x + m_displayBezel.x * 2, m_mapSize.y + m_displayBezel.y * 2); }
 		std::vector<std::shared_ptr<Node>> getNodes() { return m_pNodes; }
 		ArPose getGoalPose() { return m_goalPose; }
 		std::queue<Vertex> getPath() { return m_path; }
@@ -65,7 +65,7 @@ class Pathfinding
 
 		bool m_bNodesInit = false;
 
-		float m_displayBezel = 150.0f;
+		Vertex m_displayBezel = Vertex(150.0f, 150.0f);
 
 		ArMap m_map;
 

@@ -11,7 +11,7 @@ Pathfinding::Pathfinding(const ArMap kMap, ArRobot* kRobot, const ArPose kStartP
 	m_startPose = kStartPose;
 	m_goalPose = kGoalPose;
 
-	m_dNodeDiameter = 250; // 0.1m // Robot Diameter 0.5m
+	m_dNodeDiameter = 150; // 0.25m // Robot Diameter 0.5m
 }
 
 // Creates Nodes for pathfinding
@@ -111,8 +111,8 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		// For every Node, set h as dist to target Node
 		for (std::shared_ptr<Node> node : m_pNodes)
 		{
-			//node->h = dist_NodeToNode(node, targetNode);
-			node->h = Utils::magnitude(Vertex(targetNode->position.x - node->position.x, targetNode->position.y - node->position.y));
+			node->h = dist_NodeToNode(node, targetNode);
+			//node->h = Utils::magnitude(Vertex(targetNode->position.x - node->position.x, targetNode->position.y - node->position.y));
 		}
 
 		///////////////////// Creating Open and Closed Lists /////////////////////
@@ -146,11 +146,30 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 
 			// Get all adjacent nodes
 			std::vector<std::shared_ptr<Node>> adjNodes = getAdjacentNodes(currentNode);
+
 			// For all adjacent nodes
 			for (std::shared_ptr<Node> adjNode : adjNodes)
 			{
 				// If adjNode is inaccessible
 				if (!adjNode->bAccessible) {}
+
+				// Else If adjNode is the target destination
+				else if (adjNode == targetNode)
+				{
+					// Sets adj parent to the closed node
+					adjNode->parent = currentNode;
+
+					// Create G and F value for the adj Node
+					adjNode->g = calcG(currentNode, adjNode);
+					// F = G+H
+					adjNode->f = adjNode->g + adjNode->h;
+
+					// Destination found, create path
+					queuePath(adjNode);
+					std::cerr << "\n Generating path... Finished.\n";
+					bPathFound = true;
+					return;
+				}
 
 				// Else If adjNode is on the open list already
 				else if (nodeInVector(adjNode, openNodes))
@@ -172,74 +191,57 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 					// Parent the open node to current node
 					adjNode->parent = currentNode;
 
+					// Create G and F value for each open node
+					adjNode->g = calcG(currentNode, adjNode);
+
+					// F = G+H
+					adjNode->f = adjNode->g + adjNode->h;
+
 					// Add adjacent nodes to open list
 					openNodes.push_back(adjNode);
 				}
 			}
 
-			///////////////////// Calculating Movement Cost And F Values /////////////////////
-
-			// For all open Nodes
-			for (std::shared_ptr<Node> openNode : openNodes)
-			{
-				// If open Node is not the target node
-				if (openNode != targetNode)
-				{
-					// Create G and F value for each open node
-					openNode->g = calcG(currentNode, openNode);
-					// F = G+H
-					openNode->f = openNode->g + openNode->h;
-				}
-				else
-				{
-					// Destination found, create path
-					bPathFound = true;
-					queuePath(openNode);
-					std::cerr << "\n Generating path... Finished.\n";
-					return;
-				}
-			}
-
 			///////////////////// Determining Next Closed Node /////////////////////
-
-			std::shared_ptr<Node> node_smallestF;
 
 			// If there is an open list
 			if (!openNodes.empty())
 			{
-				node_smallestF = openNodes.at(0);
+				// Variable to store current Node with smallest F value
+				std::shared_ptr<Node> nodeWithSmallestF = openNodes.at(0); // Sets starting Node with smallest F value to the first Node in the vector
 
 				// For all open nodes
 				for (std::shared_ptr<Node> node : openNodes)
 				{
-					// Smallest F value node made the current with node moved to closed
-					if (node->f < node_smallestF->f)
+					// If Node.F is less than currSmallest->f
+					if (node->f < nodeWithSmallestF->f)
 					{
-						node_smallestF = node;
+						nodeWithSmallestF = node;
 					}
-					// If two Nodes have the same F value then the Node with lowest H is set
-					else if (node->h < node_smallestF->h)
+					// Else If two Nodes have the same F value
+					else if (node->f == nodeWithSmallestF->f)
 					{
-						node_smallestF = node;
+						// The Node with lowest H is set
+						if (node->h < nodeWithSmallestF->h) nodeWithSmallestF = node;
 					}
 				}
+
+				// Adds Node with smallest F value to the closed list
+				closedNodes.push_back(nodeWithSmallestF);
 
 				// Removes the Node with the smalled F value from the open list
 				std::vector<std::shared_ptr<Node>> newOpenNodes;
 				for (std::shared_ptr<Node> openNode : openNodes)
 				{
-					if (openNode != node_smallestF)
+					// If the openNode doesn't have the smallest F value
+					if (openNode != nodeWithSmallestF)
 					{
+						// Pushes onto new open list
 						newOpenNodes.push_back(openNode);
 					}
 				}
+				// Replaces open list with new edited copy
 				openNodes = newOpenNodes;
-
-				if (!nodeInVector(node_smallestF, closedNodes))
-				{
-					// Adds said Node to the closed list
-					closedNodes.push_back(node_smallestF);
-				}
 			}
 			// Else the open list is empty
 			else
@@ -251,44 +253,28 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		}
 	}
 
-	else std::cerr << "\n Generating path... Error - Nodes not intitialised.\n";
+	else std::cerr << "\n Generating path... Error - Nodes not intitialised.\n"; system("pause");
 }
 
 double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode)
 {
 	// Distance from the current Node and open Node
-	double dDistToNode = Utils::magnitude(Vertex(targetNode->position.x - currentNode->position.x, targetNode->position.y - currentNode->position.y)) * (1/m_dNodeDiameter); // Binds to 1 and ~1.4
+	double dDistToNode = Utils::magnitude(Vertex(targetNode->position.x - currentNode->position.x, targetNode->position.y - currentNode->position.y));
 		
+	// Binds distance to 1.0 / ~1.41
+	//dDistToNode /= m_dNodeDiameter;
+
+	//if (dDistToNode > 1.0) dDistToNode = 1.41;
+
 	// Sideways = 2 - 1 = 1
-	// Disgonal = 2.8 - 1 = 1.8
-	dDistToNode = (dDistToNode * 2) - 1;
+	// Diagonal = 2.82 - 1 = 1.82
+	//dDistToNode = (dDistToNode * 2) - 1;
 
-	// If currentNode has a parent
-	if (currentNode->parent != nullptr)
-	{
-		sf::Vector2f angleVec; sf::Vector2f angleUnitVec;
+	// Defines resultant G as distance to next Node plus current Node's G
+	double result = dDistToNode + currentNode->g;
 
-		double dTurnCost;
-
-		double currentToTargetAngle = 0.0;
-		double parentToCurrentAngle = 0.0;
-
-		angleVec = sf::Vector2f(currentNode->position.x, currentNode->position.y) - sf::Vector2f(currentNode->parent->position.x, currentNode->parent->position.y);
-		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
-
-		parentToCurrentAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
-
-		angleVec = sf::Vector2f(targetNode->position.x, targetNode->position.y) - sf::Vector2f(currentNode->position.x, currentNode->position.y);
-		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
-		
-		currentToTargetAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
-
-		dTurnCost = parentToCurrentAngle - currentToTargetAngle;
-
-		return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) */ + dTurnCost + currentNode->parent->g;
-	}
-
-	return dDistToNode;
+	// Returns resultant G value
+	return result;
 }
 
 bool Pathfinding::nodeNearLine(const ArLineSegment kLine, const Vertex kNodePos, const double kDistance)
@@ -342,10 +328,10 @@ int Pathfinding::dist_NodeToNode(std::shared_ptr<Node> startNode, std::shared_pt
 	int yDist = (endNode->position.y - startNode->position.y) / m_dNodeDiameter;
 
 	// Combines the distances in the x and y axis
-	int iDistance = xDist + yDist;
+	int iDistance = abs(xDist) + abs(yDist);
 
 	// Returns the combined distances, bound to positive
-	return abs(iDistance);
+	return iDistance;
 }
 
 std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr<Node> node)
@@ -640,8 +626,31 @@ void Pathfinding::draw(sf::RenderTarget& target)
 	// If Nodes initialised
 	if (m_bNodesInit)
 	{
+		//// Defines the size of the display area
+		//Vertex displaySize(target.getSize().x - m_displayBezel.x * 2, target.getSize().y - m_displayBezel.y * 2);
+		//
+		//Vertex displayPosition(m_displayBezel.x, m_displayBezel.y);
+		//
+		//double dLargestDisplayAxis = Utils::maxDouble(displaySize.x, displaySize.y);
+		//
+		//double dLargestMapAxis = Utils::maxDouble(m_mapSize.x, m_mapSize.y);
+		//
+		//double dXToYRatio = m_mapSize.y / m_mapSize.x;
+		//double dYToXRatio = m_mapSize.x / m_mapSize.y;
+		//
+		//// Display is wider than tall
+		//if (dLargestDisplayAxis == displaySize.x)
+		//{
+		//	displayPosition.y = (((displaySize.y / m_mapSize.y) * dXToYRatio) / 2) + m_displayBezel.x;
+		//}
+		//// Display is taller than wide
+		//else if (dLargestDisplayAxis == displaySize.y)
+		//{
+		//	displayPosition.x = (((displaySize.x / m_mapSize.x) * dYToXRatio) / 2) + m_displayBezel.y;
+		//}
+
 		// Coordinate offset to convert from Aria coord system to SFML coord system with added display bezel
-		Vertex offset(m_mapLowerBounds.x - m_displayBezel, m_mapUpperBounds.y + m_displayBezel);
+		Vertex offset(m_mapLowerBounds.x - m_displayBezel.x, m_mapUpperBounds.y + m_displayBezel.y);
 
 		// Rectangle shape for drawing
 		sf::RectangleShape rectShape;
@@ -649,14 +658,15 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		// BACKGROUND
 		rectShape.setSize(sf::Vector2f(m_mapSize.x, m_mapSize.y)); // Size of Map
 		rectShape.setFillColor(sf::Color(255.0f, 255.0f, 255.0f, 255.0f)); // White
-		rectShape.setPosition(sf::Vector2f(m_displayBezel, m_displayBezel));
+		rectShape.setOrigin(sf::Vector2f(0.0f, rectShape.getSize().y)); // Origin
+		rectShape.setPosition(sf::Vector2f(m_mapLowerBounds.x - offset.x, Utils::invertDouble(m_mapLowerBounds.y) + offset.y));
 
 		target.draw(rectShape);
 
 		// NODES
 		rectShape.setSize(sf::Vector2f(m_dNodeDiameter, m_dNodeDiameter)); // Size of Node
 		rectShape.setOutlineColor(sf::Color(150.0f, 150.0f, 150.0f, 255.0f)); // Black Outline
-		rectShape.setOutlineThickness(12.5); // Outline Thickness
+		rectShape.setOutlineThickness(8); // Outline Thickness
 		rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
 
 		// For every Node
@@ -684,7 +694,7 @@ void Pathfinding::draw(sf::RenderTarget& target)
 			// Gets the line at index i
 			ArLineSegment line = m_map.getLines()->at(i);
 
-			rectShape.setSize(sf::Vector2f(line.getLengthOf(), 50.0f)); // Size of Node
+			rectShape.setSize(sf::Vector2f(line.getLengthOf(), 25.0f)); // Size of Node
 			rectShape.setOutlineThickness(0.0f); // Outline Thickness
 			rectShape.setFillColor(sf::Color(0.0f, 0.0f, 0.0f, 255.0f)); // Black
 			rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
