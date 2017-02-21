@@ -1,3 +1,6 @@
+# Prerequisites
+*.d
+
 # Compiled Object files
 *.slo
 *.lo
@@ -27,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+# Misc
+*.log
+*.tlog
+*.ilk
+*.pdb
+*.idb
+*.suo
+*.VC.db
+*.opendb
+
+# Directories
+/Projects/RobotProject/temp
+/bin
