@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 		path.getPathfinding()->draw(window, font);
 
 		// Sets view to size of the map
-		window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, path.getPathfinding()->getMapSize().x + path.getPathfinding()->getDisplayBezel()*2, path.getPathfinding()->getMapSize().y + path.getPathfinding()->getDisplayBezel()*2)));
+		window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, path.getPathfinding()->getViewSize().x, path.getPathfinding()->getViewSize().y)));
 
 		// Displays the current frame
 		window.display();

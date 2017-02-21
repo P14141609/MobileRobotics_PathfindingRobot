@@ -270,7 +270,7 @@ double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Nod
 	//double dTurnCost = Utils::angleFromUnitVec();
 	//dTurnCost = 
 
-	return (dDistToNode * (1 / m_dNodeDiameter)) /*+ dTurnCost*/ + targetNode->parent->g;
+	return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) /*+ dTurnCost*/ + targetNode->parent->g;
 }
 
 bool Pathfinding::lineIntersectNode(const ArLineSegment kLine, const Vertex kNodePos)
