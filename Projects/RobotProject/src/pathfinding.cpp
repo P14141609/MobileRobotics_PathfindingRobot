@@ -114,8 +114,8 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		// For every Node, set h as dist to target Node
 		for (std::shared_ptr<Node> node : m_pNodes)
 		{
-			node->h = dist_NodeToNode(node, targetNode);
-			//node->h = Utils::magnitude(Vertex(targetNode->position.x - node->position.x, targetNode->position.y - node->position.y));
+			//node->h = dist_NodeToNode(node, targetNode);
+			node->h = Utils::magnitude(Vertex(targetNode->position.x - node->position.x, targetNode->position.y - node->position.y));
 		}
 
 		///////////////////// Creating Open and Closed Lists /////////////////////
@@ -261,16 +261,31 @@ double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Nod
 {
 	// Distance from the current Node and open Node
 	double dDistToNode = Utils::magnitude(Vertex(targetNode->position.x - currentNode->position.x, targetNode->position.y - currentNode->position.y));
+		
+	double dTurnCost;
 
-	//sf::Vector2f angleVec = sf::Vector2f(targetNode->position.x, targetNode->position.y) - sf::Vector2f(currentNode->position.x, currentNode->position.y);
-	//sf::Vector2f angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
-	//
-	//double currentToTargetAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
-	//
-	//double dTurnCost = Utils::angleFromUnitVec();
-	//dTurnCost = 
+	sf::Vector2f angleVec; sf::Vector2f angleUnitVec;
 
-	return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) /*+ dTurnCost*/ + targetNode->parent->g;
+	double currentToTargetAngle = 0.0;
+	double parentToCurrentAngle = 0.0;
+
+	// If currentNode has a parent
+	if (currentNode->parent != nullptr)
+	{
+		angleVec = sf::Vector2f(currentNode->position.x, currentNode->position.y) - sf::Vector2f(currentNode->parent->position.x, currentNode->parent->position.y);
+		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
+
+		parentToCurrentAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
+
+		angleVec = sf::Vector2f(targetNode->position.x, targetNode->position.y) - sf::Vector2f(currentNode->position.x, currentNode->position.y);
+		angleUnitVec = angleVec / (float)Utils::magnitude(Vertex(angleVec.x, angleVec.y));
+		
+		currentToTargetAngle = Utils::angleFromUnitVec(Vertex(angleUnitVec.x, angleUnitVec.y));
+	}
+
+	dTurnCost = parentToCurrentAngle - currentToTargetAngle;
+
+	return /*(*/dDistToNode/* * (1 / m_dNodeDiameter)) */+ dTurnCost + targetNode->parent->g;
 }
 
 bool Pathfinding::lineIntersectNode(const ArLineSegment kLine, const Vertex kNodePos)
