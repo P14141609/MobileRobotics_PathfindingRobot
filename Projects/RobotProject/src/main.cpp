@@ -120,14 +120,6 @@ int main(int argc, char **argv)
 	// Instantiates window
 	sf::RenderWindow window(sf::VideoMode(1280, 720), "Pathfinding Representation - Coursework Submission 2 (Part2) - Mobile Robotics - P14141609", sf::Style::Default);
 
-	sf::FileInputStream fStream;
-	if (!fStream.open("res/arialbd.ttf")) { std::cerr << "\n Error - Failed to open FileInputStream\n"; } // Error
-
-	// Declares font
-	sf::Font font;
-	// Loads font from file
-	if (!font.loadFromStream(fStream)) { std::cerr << "\n Error - Failed to open FontFromStream\n"; } // Error
-
 	// Aria Setup
 	Aria::init();
 	ArArgumentParser argParser(&argc, argv);
@@ -138,8 +130,7 @@ int main(int argc, char **argv)
 
 	// Aria Map Setup
 	// Map directory
-	std::string ksMapFile("E:\\Documents\\University\\Year 3\\IMAT3404 - Mobile Robotics\\Maps\\Mine.map");
-	//std::string ksMapFile("E:\\Documents\\University\\Year 3\\IMAT3404 - Mobile Robotics\\Maps\\Circle.map");
+	std::string ksMapFile("./res/maps/Mine.map");
 
 	// Creates an ArMap object with the given map file
 	ArMap map; map.readFile(ksMapFile.c_str());
@@ -229,7 +220,7 @@ int main(int argc, char **argv)
 		window.clear(sf::Color(160, 160, 160, 255));
 
 		// Draws pathfinding info to display
-		path.getPathfinding()->draw(window, font);
+		path.getPathfinding()->draw(window);
 
 		// Sets view to size of the map
 		window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, path.getPathfinding()->getViewSize().x, path.getPathfinding()->getViewSize().y)));

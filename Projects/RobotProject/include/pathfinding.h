@@ -31,7 +31,7 @@ class Pathfinding
 		std::shared_ptr<Node> closestNode(const Vertex kPosition);
 
 		// Draws pathfinding info to a display
-		void draw(sf::RenderTarget& target, sf::Font& font);
+		void draw(sf::RenderTarget& target);
 
 		Vertex getViewSize() { return Vertex(m_mapSize.x + m_displayBezel*2, m_mapSize.y + m_displayBezel * 2); }
 		std::vector<std::shared_ptr<Node>> getNodes() { return m_pNodes; }
@@ -52,7 +52,7 @@ class Pathfinding
 
 		double calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode);
 
-		bool lineIntersectNode(const ArLineSegment kLine, const Vertex kNodePos);
+		bool nodeNearLine(const ArLineSegment kLine, const Vertex kNodePos, const double kDistance);
 
 		// Stores two corners of the map
 		Vertex m_mapUpperBounds = Vertex(INT32_MIN, INT32_MIN);
