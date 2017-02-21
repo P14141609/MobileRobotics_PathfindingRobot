@@ -65,15 +65,15 @@ ArActionDesired * Path::fire(ArActionDesired d)
 			// Path is not empty
 			else
 			{
-				// Calculate output
-				m_PID.dOutput = calcP() + calcI() + calcD();
-
-				// Implement control action
-				m_dDeltaHeading = m_PID.dOutput;
-
-				// Consequence
-				desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
-				desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
+				//// Calculate output
+				//m_PID.dOutput = calcP() + calcI() + calcD();
+				//
+				//// Implement control action
+				//m_dDeltaHeading = m_PID.dOutput;
+				//
+				//// Consequence
+				//desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
+				//desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
 			}
 		}break;
 	}
