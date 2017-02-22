@@ -42,5 +42,6 @@
 *.opendb
 
 # Directories
+/enc_temp_folder
 /Projects/RobotProject/temp
 /bin
