@@ -6,7 +6,6 @@
 #include <SFML/Window.hpp>
 
 #include <string>
-#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -108,26 +107,27 @@ bool read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalP
 		else {}
 	}
 
+	// Boolean to store whether an error was encountered
 	bool bErrorPresent = false;
 
 	// If StartPose has not been given a position
-	if (_isnan(startPose->getX()) || _isnan(startPose->getY()) || _isnan(startPose->getTh()))
+	if (startPose->getX() == INT32_MIN || startPose->getY() == INT32_MIN || startPose->getTh() == INT32_MIN)
 	{
 		bErrorPresent = true;
 
-		if (_isnan(startPose->getX())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' X argument.\n";
-		if (_isnan(startPose->getY())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' Y argument.\n";
-		if (_isnan(startPose->getTh())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' Th argument.\n";
+		if (startPose->getX() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' X argument.\n";
+		if (startPose->getY() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' Y argument.\n";
+		if (startPose->getTh() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: RobotHome' Th argument.\n";
 	}
 
 	// If GoalPose has not been given a value
-	if (_isnan(goalPose->getX()) || _isnan(goalPose->getY()) || _isnan(goalPose->getTh()))
+	if (goalPose->getX() == INT32_MIN || goalPose->getY() == INT32_MIN || goalPose->getTh() == INT32_MIN)
 	{
 		bErrorPresent = true;
 
-		if (_isnan(goalPose->getX())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' X argument.\n";
-		if (_isnan(goalPose->getY())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' Y argument.\n";
-		if (_isnan(goalPose->getTh())) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' Th argument.\n";
+		if (goalPose->getX() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' X argument.\n";
+		if (goalPose->getY() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' Y argument.\n";
+		if (goalPose->getTh() == INT32_MIN) std::cerr << "\n Reading Map Info... Error - Missing 'Cairn: Goal' Th argument.\n";
 	}
 
 	// Closes Environment file
@@ -138,6 +138,7 @@ bool read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalP
 
 	// Successfully read map info
 	std::cerr << "\n Reading Map Info... Finished. \n";
+
 	return true;
 }
 
@@ -171,18 +172,18 @@ int main(int argc, char **argv)
 	if (!map.readFile(sMapDir.c_str()))
 	{
 		std::cerr << "\n Error - Map '" << sMapDir.c_str() << "' could not be read.\n";
-		system("pause");
+		std::cerr << '\n'; system("pause");
 	}
 	else 
 	{
 		// Declares ArPose vairables for robot start and goal
-		ArPose robotStartPose;
-		ArPose robotGoalPose;
+		ArPose robotStartPose(INT32_MIN, INT32_MIN, INT32_MIN);
+		ArPose robotGoalPose(INT32_MIN, INT32_MIN, INT32_MIN);
 
 		// Attempts to read the map file and set the start and goal positions
 		if (!read_MapInfo(sMapDir, &robotStartPose, &robotGoalPose))
 		{
-			system("pause");
+			std::cerr << '\n'; system("pause");
 		}
 		else
 		{
