@@ -153,17 +153,24 @@ int main(int argc, char **argv)
 	ArArgumentParser argParser(&argc, argv);
 	argParser.loadDefaultArguments();
 
+	// String for input
+	std::string sInput;
+
+	std::cerr << "\n Enter a Map name to load: './res/maps/YOURINPUT.map': ";
+	std::cin >> sInput; 
+	std::cerr << '\n';
+
 	// Aria Map Setup
 	// Map directory
-	std::string ksMapFile("./res/maps/Mine.map");
+	std::string sMapDir("./res/maps/" + sInput + ".map");
 
 	// Creates an ArMap object
 	ArMap map; 
 	
 	// Attempts to read map object data into object
-	if (!map.readFile(ksMapFile.c_str()))
+	if (!map.readFile(sMapDir.c_str()))
 	{
-		std::cerr << "\n Error - Map '" << ksMapFile.c_str() << "' could not be read.\n";
+		std::cerr << "\n Error - Map '" << sMapDir.c_str() << "' could not be read.\n";
 		system("pause");
 	}
 	else 
@@ -173,7 +180,7 @@ int main(int argc, char **argv)
 		ArPose robotGoalPose;
 
 		// Attempts to read the map file and set the start and goal positions
-		if (!read_MapInfo(ksMapFile, &robotStartPose, &robotGoalPose))
+		if (!read_MapInfo(sMapDir, &robotStartPose, &robotGoalPose))
 		{
 			system("pause");
 		}
