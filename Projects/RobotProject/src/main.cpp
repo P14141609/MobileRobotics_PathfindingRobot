@@ -6,6 +6,7 @@
 #include <SFML/Window.hpp>
 
 #include <string>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -14,8 +15,10 @@
 #include "avoid.h"
 #include "path.h"
 
-void read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalPose)
+bool read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalPose)
 {
+	std::cerr << "\n Reading Map startPose and goalPose... \n";
+
 	// Declares a file stream with the input file path
 	std::fstream file(ksFilePath, std::ios_base::in);
 
@@ -105,8 +108,37 @@ void read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalP
 		else {}
 	}
 
+	bool bErrorPresent = false;
+
+	// If StartPose has not been given a position
+	if (_isnan(startPose->getX()) || _isnan(startPose->getY()) || _isnan(startPose->getTh()))
+	{
+		bErrorPresent = true;
+
+		if (_isnan(startPose->getX())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: RobotHome' X argument.\n";
+		if (_isnan(startPose->getY())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: RobotHome' Y argument.\n";
+		if (_isnan(startPose->getTh())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: RobotHome' Th argument.\n";
+	}
+
+	// If GoalPose has not been given a value
+	if (_isnan(goalPose->getX()) || _isnan(goalPose->getY()) || _isnan(goalPose->getTh()))
+	{
+		bErrorPresent = true;
+
+		if (_isnan(goalPose->getX())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: Goal' X argument.\n";
+		if (_isnan(goalPose->getY())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: Goal' Y argument.\n";
+		if (_isnan(goalPose->getTh())) std::cerr << "\n Reading Map startPose and goalPose... Error - Missing 'Cairn: Goal' Th argument.\n";
+	}
+
 	// Closes Environment file
 	file.close();
+
+	// Error reading map info
+	if (bErrorPresent) return false; 
+
+	// Successfully read map info
+	std::cerr << "\n Reading Map startPose and goalPose... Finished. \n";
+	return true;
 }
 
 static void callback_mapchange()
@@ -139,94 +171,96 @@ int main(int argc, char **argv)
 	ArPose robotStartPose;
 	ArPose robotGoalPose;
 
-	// Reads the map file and sets the start and goal positions
-	read_MapInfo(ksMapFile, &robotStartPose, &robotGoalPose);
-	
-	// Always try to connect to the first laser:
-	argParser.addDefaultArgument("-connectLaser");
-
-	if (!robotConnector.connectRobot())
+	// Attempts to read the map file and set the start and goal positions
+	if (read_MapInfo(ksMapFile, &robotStartPose, &robotGoalPose))
 	{
-		ArLog::log(ArLog::Terse, "Could not connect to the robot.");
-		if (argParser.checkHelpAndWarnUnparsed())
+
+		// Always try to connect to the first laser:
+		argParser.addDefaultArgument("-connectLaser");
+
+		if (!robotConnector.connectRobot())
 		{
-			// -help not given, just exit.
-			Aria::logOptions();
-			Aria::exit(1);
-		}
-	}
-		
-	// Trigger argument parsing
-	if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed())
-	{
-		Aria::logOptions();
-		Aria::exit(1);
-	}
-
-	ArKeyHandler keyHandler;
-	Aria::setKeyHandler(&keyHandler);
-	robot.attachKeyHandler(&keyHandler);
-
-	puts("Press Escape to exit.");
-
-	ArSonarDevice sonar;
-	robot.addRangeDevice(&sonar);
-
-	robot.runAsync(true);
-
-	// try to connect to laser. if fail, warn but continue, using sonar only
-	if (!laserConnector.connectLasers())
-	{
-		ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only.");
-	}
-
-	// turn on the motors
-	robot.enableMotors();
-
-	// USED FOR WANDER
-	// Intitialises a seed for rand()
-	//srand((unsigned int)time(NULL));
-
-	// add a set of actions that combine together to effect the wander behavior
-	ArActionStallRecover recover;
-	ArActionBumpers bumpers;
-
-	// Actions
-	Avoid avoid;
-	Path path(map, robotStartPose, robotGoalPose);
-
-	robot.addAction(&recover, 100);
-	robot.addAction(&bumpers, 75);
-	robot.addAction(&avoid, 50);
-	robot.addAction(&path, 25);
-	
-	// While the window is open
-	while (window.isOpen())
-	{
-		// Event object for windows event calls
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			// If Closed event is called
-			if (event.type == sf::Event::Closed)
+			ArLog::log(ArLog::Terse, "Could not connect to the robot.");
+			if (argParser.checkHelpAndWarnUnparsed())
 			{
-				// Closes window
-				window.close();
-				Aria::exit(0);
+				// -help not given, just exit.
+				Aria::logOptions();
+				Aria::exit(1);
 			}
 		}
 
-		// Clears window making it entirely black
-		window.clear(sf::Color(160, 160, 160, 255));
+		// Trigger argument parsing
+		if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed())
+		{
+			Aria::logOptions();
+			Aria::exit(1);
+		}
 
-		// Draws pathfinding info to display
-		path.getPathfinding()->draw(window);
+		ArKeyHandler keyHandler;
+		Aria::setKeyHandler(&keyHandler);
+		robot.attachKeyHandler(&keyHandler);
 
-		// Sets view to size of the map
-		window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, path.getPathfinding()->getViewSize().x, path.getPathfinding()->getViewSize().y)));
+		puts("Press Escape to exit.");
 
-		// Displays the current frame
-		window.display();
+		ArSonarDevice sonar;
+		robot.addRangeDevice(&sonar);
+
+		robot.runAsync(true);
+
+		// try to connect to laser. if fail, warn but continue, using sonar only
+		if (!laserConnector.connectLasers())
+		{
+			ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only.");
+		}
+
+		// turn on the motors
+		robot.enableMotors();
+
+		// USED FOR WANDER
+		// Intitialises a seed for rand()
+		//srand((unsigned int)time(NULL));
+
+		// add a set of actions that combine together to effect the wander behavior
+		ArActionStallRecover recover;
+		ArActionBumpers bumpers;
+
+		// Actions
+		Avoid avoid;
+		Path path(map, robotStartPose, robotGoalPose);
+
+		robot.addAction(&recover, 100);
+		robot.addAction(&bumpers, 75);
+		robot.addAction(&avoid, 50);
+		robot.addAction(&path, 25);
+
+		// While the window is open
+		while (window.isOpen())
+		{
+			// Event object for windows event calls
+			sf::Event event;
+			while (window.pollEvent(event))
+			{
+				// If Closed event is called
+				if (event.type == sf::Event::Closed)
+				{
+					// Closes window
+					window.close();
+					Aria::exit(0);
+				}
+			}
+
+			// Clears window making it entirely black
+			window.clear(sf::Color(160, 160, 160, 255));
+
+			// Draws pathfinding info to display
+			path.getPathfinding()->draw(window);
+
+			// Sets view to size of the map
+			window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, path.getPathfinding()->getViewSize().x, path.getPathfinding()->getViewSize().y)));
+
+			// Displays the current frame
+			window.display();
+		}
 	}
 
 	// wait for robot task loop to end before exiting the program
