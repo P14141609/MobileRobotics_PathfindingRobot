@@ -73,7 +73,7 @@ class Pathfinding
 
 		// Vector of Nodes
 		std::vector<std::shared_ptr<Node>> m_pNodes;
-		// Queue of Nodes forming a path
+		// Queue of Poses forming a path
 		std::queue<ArPose> m_path;
 
 		// Whether Nodes have been initialised

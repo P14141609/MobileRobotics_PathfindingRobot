@@ -15,9 +15,9 @@ Path::Path(const ArMap kMap, const ArPose kStartPose, const ArPose kGoalPose)
 	m_sensor.m_range.dMin = 250.0; // 0.25m
 
 	// Defines PID gain values
-	m_PID.dKp = 0.125;
-	m_PID.dKi = 0.0005;
-	m_PID.dKd = 2.5;
+	m_PID.dKp = 1.5;
+	m_PID.dKi = 0.001;
+	m_PID.dKd = 0.66;
 }
 
 // Body of action
@@ -29,11 +29,12 @@ ArActionDesired * Path::fire(ArActionDesired d)
 	std::cerr << "\n Path State: " << stateToString(m_state) << '\n';
 
 	std::cerr
-		<< "\n m_pPathfinding->getNodes().size(): " << m_pPathfinding->getNodes().size()
-		<< "\n m_pPathfinding->getPath().size(): " << m_pPathfinding->getPath().size()
-		<< "\n P: " << calcP()
-		<< "\n I: " << calcI()
-		<< "\n D: " << calcD()
+		<< "\n Number of Nodes: " << m_pPathfinding->getNodes().size()
+		<< "\n Path Queue Size: " << m_pPathfinding->getPath().size()
+		<< '\n'
+		<< "\n pGain " << m_PID.dKp << " calcP()  : " << calcP()
+		<< "\n iGain " << m_PID.dKi << " calcI(): " << calcI()
+		<< "\n dGain " << m_PID.dKd << " calcD() : " << calcD()
 		<< "\n RMSE: " << calcRMSE()
 		<< '\n';
 
@@ -70,19 +71,10 @@ ArActionDesired * Path::fire(ArActionDesired d)
 				// Path queue is not empty
 				else
 				{
-					std::cerr
-						<< "\n m_pPathfinding->getPath().front().getX(): " << m_pPathfinding->getPath().front().getX()
-						<< "\n m_pPathfinding->getPath().front().getY(): " << m_pPathfinding->getPath().front().getY()
-						<< "\n myRobot->getX(): " << myRobot->getX()
-						<< "\n m_pPathfinding->myRobot->getY(): " << myRobot->getY()
-						<< '\n';
-
 					// Vector of displacement between Robot and the next path Node
 					sf::Vector2f displacement = sf::Vector2f(m_pPathfinding->getPath().front().getX(), m_pPathfinding->getPath().front().getY()) - sf::Vector2f(myRobot->getX(), myRobot->getY());
 					// Distance to next path Node
 					double distToNode = Utils::magnitude(displacement);
-
-					std::cerr << "\n distToNode: " << distToNode << '\n';
 
 					// If the Robot is close to the Node
 					if (distToNode < myRobot->getRobotRadius())
@@ -104,16 +96,17 @@ ArActionDesired * Path::fire(ArActionDesired d)
 						// Angle of the line in degrees
 						double lineAngle = Utils::angleFromUnitVec(Utils::angleUnitVector(displacement));
 
-						// Binds the line angle from 0-360 degrees
+						// Binds both angles from 0 to 360 degrees
 						lineAngle = Utils::bindNum(lineAngle, 0, 360);
+						double robotAngle = Utils::bindNum(myRobot->getTh(), 0, 360);
 
 						// Difference between the line and robot angles
-						double angleDiff = lineAngle - myRobot->getTh();
+						double angleDiff = lineAngle - robotAngle;
 
 						std::cerr
-							<< "\n lineAngle: " << lineAngle
-							<< "\n myRobot->getTh(): " << myRobot->getTh()
-							<< "\n angleDiff: " << angleDiff
+							<< "\n lineAngle : " << lineAngle
+							<< "\n robotAngle: " << robotAngle
+							<< "\n angleDiff : " << angleDiff
 							<< '\n';
 
 						// Angle difference applied to setpoint
@@ -123,7 +116,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 						m_PID.error.push_back(m_PID.dSetPoint);
 
 						// Calculates output
-						m_PID.dOutput = m_PID.dSetPoint;// calcP() + calcI() + calcD();
+						m_PID.dOutput = calcP() + calcI() + calcD();
 
 						// Implement control action
 						m_dDeltaHeading = m_PID.dOutput;
