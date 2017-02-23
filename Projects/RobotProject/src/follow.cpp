@@ -23,7 +23,7 @@ ArActionDesired * Follow::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
-	std::cerr << "\n Follow State: " << Utils::stateToString(m_state) << '\n';
+	std::cerr << "\n Follow State: " << stateToString(m_state) << '\n';
 
 	std::cerr
 		<< "\n P: " << calcP()

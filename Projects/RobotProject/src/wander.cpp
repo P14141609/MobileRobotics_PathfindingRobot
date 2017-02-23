@@ -16,7 +16,7 @@ ArActionDesired * Wander::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
-	std::cerr << "\n Wander State: " << Utils::stateToString(m_state) << '\n';
+	std::cerr << "\n Wander State: " << stateToString(m_state) << '\n';
 
 	std::cerr
 		<< "\n m_dDeltaHeading: " << m_dDeltaHeading

@@ -7,7 +7,6 @@ Avoid::Avoid()
 	m_dSpeed = 25; // Set the robots speed to 0.025 m/s. 0.2 is top speed
 	m_dDeltaHeading = 0; // Straight line
 
-	//m_sensor.m_range.dMin = 0.0;
 	m_sensor.m_range.dMax = 250.0; // 0.25m
 }
 
@@ -17,13 +16,12 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
 	system("cls");
-	std::cerr << "\n Avoid State: " << Utils::stateToString(m_state) << '\n';
+	std::cerr << "\n Avoid State: " << stateToString(m_state) << '\n';
 
 	std::cerr
-		<< "\n Sensors: front(" << m_sensor.m_distance.dFront << ") left(" << m_sensor.m_distance.dLeft << ") right(" << m_sensor.m_distance.dRight << ")"
-		<< "\n Speed: " << m_dSpeed
-		<< "\n Heading: " << myRobot->getPose().getTh()
-		<< "\n Position: x(" << myRobot->getX() << ") y(" << myRobot->getY() << ")"
+		<< "\n Sensors: front(" << m_sensor.m_distance.dFront << ")"
+		<< "\n myRobot.Speed: " << myRobot->getVel()
+		<< "\n myRobot.Pose: x(" << myRobot->getX() << ") y(" << myRobot->getY() << ") th(" << myRobot->getTh() << ")"
 		<< '\n';
 
 	// Get sonar readings
@@ -79,11 +77,8 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 
 void Avoid::calcState()
 {
-	// If there's an edge within the range
-	if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) <= m_sensor.m_range.dMax)
-	//if ((Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeftFront, m_sensor.m_distance.dRightFront) <= m_sensor.m_range.dMax) 
-	//	|| (Utils::minDouble(m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) <= m_sensor.m_range.dMax*0.25))
-	//if ((m_sensor.m_distance.dFront <= m_sensor.m_range.dMax) || (Utils::minDouble(m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) <= m_sensor.m_range.dMax*0.75))
+	// If there's an edge within the range on the front sensor
+	if (m_sensor.m_distance.dFront <= m_sensor.m_range.dMax)
 	{
 		m_state = ACTIVE;
 	}

@@ -10,7 +10,7 @@ class Node
 		Node() {}
 
 		// In-world coords
-		Vertex position; 
+		ArPose position;
 
 		// Previous Node in the path
 		std::shared_ptr<Node> parent;

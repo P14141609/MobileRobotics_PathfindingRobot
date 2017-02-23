@@ -35,6 +35,7 @@ class Path : public BaseAction
 	private:
 
 		std::shared_ptr<Pathfinding> m_pPathfinding = nullptr;
+		bool m_bPathComplete;
 
 		PIDData m_PID;
 

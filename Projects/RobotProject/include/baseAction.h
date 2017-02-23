@@ -37,6 +37,14 @@ class BaseAction : public ArAction
 			m_sensor.m_distance.dLeft = myRobot->getClosestSonarRange(25, 100);
 			m_sensor.m_distance.dRight = myRobot->getClosestSonarRange(-100, -25);
 		}
+
+		// Returns the string value of a state
+		static std::string stateToString(const int kiState)
+		{
+			if (kiState == 0) return "IDLE";
+			if (kiState == 1) return "ACTIVE";
+			else return "ERROR";
+		}
 };
 
 #endif

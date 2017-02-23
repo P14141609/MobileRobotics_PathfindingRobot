@@ -7,11 +7,12 @@ Path::Path(const ArMap kMap, const ArPose kStartPose, const ArPose kGoalPose)
 	//
 	m_pPathfinding = std::shared_ptr<Pathfinding>(new Pathfinding(kMap, Aria::getRobotList()->front(), kStartPose, kGoalPose));
 
+	m_bPathComplete = false;
+
 	m_dSpeed = 200.0; // Set the robots speed to 0.2 m/s. 0.2 is top speed
 	m_dDeltaHeading = 0; // Straight line
 
 	m_sensor.m_range.dMin = 250.0; // 0.25m
-	//m_sensor.m_range.dMax = 250.0;
 
 	// Defines PID gain values
 	m_PID.dKp = 0.125;
@@ -24,7 +25,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
-	std::cerr << "\n Pathfinding State: " << Utils::stateToString(m_state) << '\n';
+	std::cerr << "\n Path State: " << stateToString(m_state) << '\n';
 
 	std::cerr
 		<< "\n m_pPathfinding->getNodes().size(): " << m_pPathfinding->getNodes().size()
@@ -50,30 +51,94 @@ ArActionDesired * Path::fire(ArActionDesired d)
 
 		case ACTIVE:
 		{
-			// If the path is empty
-			if (m_pPathfinding->getPath().empty())
-			{
-				//int iInput;
-				//
-				//// Pick target node
-				//std::cerr << "\nPick a node to path towards: ";
-				//std::cin >> iInput; std::cerr << '\n';
+			desiredState.setVel(0.0); // set the speed of the robot in the desired state
+			desiredState.setDeltaHeading(0.0); // Set the heading change of the robot
 
-				// Creates path to Node 0
-				m_pPathfinding->createPathTo(m_pPathfinding->closestNode(Vertex(m_pPathfinding->getGoalPose().getX(), m_pPathfinding->getGoalPose().getY())));
+			if (m_bPathComplete)
+			{
+				std::cerr << "\n Path Complete. \n";
 			}
-			// Path is not empty
 			else
 			{
-				//// Calculate output
-				//m_PID.dOutput = calcP() + calcI() + calcD();
-				//
-				//// Implement control action
-				//m_dDeltaHeading = m_PID.dOutput;
-				//
-				//// Consequence
-				//desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
-				//desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
+				// If the path is empty
+				if (m_pPathfinding->getPath().empty())
+				{
+					// Creates path to the Node closest to the goal Pose
+					m_pPathfinding->createPathTo(m_pPathfinding->closestNode(m_pPathfinding->getGoalPose()));
+				}
+				// Path is not empty
+				else
+				{
+					std::cerr
+						<< "\n m_pPathfinding->getGoalPose.getX(): " << m_pPathfinding->getGoalPose().getX()
+						<< "\n m_pPathfinding->getGoalPose.getY(): " << m_pPathfinding->getGoalPose().getY()
+						<< "\n m_pPathfinding->getStartPose.getX(): " << m_pPathfinding->getStartPose().getX()
+						<< "\n m_pPathfinding->getStartPose.getY(): " << m_pPathfinding->getStartPose().getY()
+						<< "\n m_pPathfinding->getStartPose.getTh(): " << m_pPathfinding->getStartPose().getTh()
+
+						<< "\n m_pPathfinding->getPath().front().getX(): " << m_pPathfinding->getPath().front().getX()
+						<< "\n m_pPathfinding->getPath().front().getY(): " << m_pPathfinding->getPath().front().getY()
+						<< "\n m_pPathfinding->trueX(myRobot->getX()): " << m_pPathfinding->trueX(myRobot->getX())
+						<< "\n m_pPathfinding->trueY(myRobot->getY()): " << m_pPathfinding->trueY(myRobot->getY())
+						<< "\n m_pPathfinding->trueTh(myRobot->getTh()): " << m_pPathfinding->trueTh(myRobot->getTh())
+						<< '\n';
+
+					double distToNode = Utils::magnitude(
+						sf::Vector2f(
+							m_pPathfinding->getPath().front().getX() - m_pPathfinding->trueX(myRobot->getX()),
+							m_pPathfinding->getPath().front().getY() - m_pPathfinding->trueY(myRobot->getY())
+					));
+
+					std::cerr << "\n distToNode: " << distToNode << '\n';
+
+					if (distToNode < myRobot->getRobotRadius())
+					{
+						if (m_pPathfinding->getPath().size() == 1)
+						{
+							m_bPathComplete = true;
+						}
+
+						m_pPathfinding->popPath();
+						m_PID.error.clear();
+					}
+					else
+					{
+						// Vector of displacement between Robot and the next Path point
+						sf::Vector2f angleVec = sf::Vector2f(m_pPathfinding->trueX(myRobot->getX()), m_pPathfinding->trueY(myRobot->getY())) - sf::Vector2f(m_pPathfinding->getPath().front().getX(), m_pPathfinding->getPath().front().getY());
+						// Unit vector of this displacement
+						sf::Vector2f angleUnitVec = angleVec / (float)Utils::magnitude(angleVec);
+
+						// Angle of the unit vector in degrees
+						double lineAngle = Utils::angleFromUnitVec(angleUnitVec);
+						double robotAngle = m_pPathfinding->trueTh(myRobot->getTh());
+
+						while (lineAngle > 360)  lineAngle -= 360;
+						while (lineAngle < 0)  lineAngle += 360;
+
+						double angleDiff = lineAngle - robotAngle;
+
+						std::cerr
+							<< "\n lineAngle: " << lineAngle
+							<< "\n robotAngle: " << robotAngle
+							<< "\n angleDiff: " << angleDiff
+							<< '\n';
+
+						// Setpoint
+						m_PID.dSetPoint = angleDiff;
+
+						m_PID.error.push_back(m_PID.dSetPoint);
+
+						// Calculate output
+						m_PID.dOutput = m_PID.dSetPoint;// calcP() + calcI() + calcD();
+
+						// Implement control action
+						m_dDeltaHeading = m_PID.dOutput;
+
+						// Consequence
+						desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
+						desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
+					}
+				}
 			}
 		}break;
 	}
@@ -149,7 +214,7 @@ double Path::calcRMSE()
 void Path::calcState()
 {
 	// If no edge is within minimum range
-	if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) > m_sensor.m_range.dMin)
+	if (m_sensor.m_distance.dFront > m_sensor.m_range.dMin)
 	{
 		m_state = ACTIVE;
 	}

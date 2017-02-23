@@ -14,31 +14,10 @@
 const float g_kfPi = 3.14159f;
 const float g_kfDegToRad = g_kfPi / 180;
 
-struct Vertex
-{
-	// Default Cnstructor
-	Vertex() {}
-
-	// Constructor
-	Vertex(const double kX, const double kY) { x = kX; y = kY; }
-
-	// Members
-	double x; // x coordinate
-	double y; // y coordinate
-};
-
 class Utils
 {
 	public:
 		
-		// Returns the string value of a state
-		static std::string stateToString(const int kiState)
-		{
-			if (kiState == 0) return "IDLE";
-			if (kiState == 1) return "ACTIVE";
-			else return "ERROR";
-		}
-
 		// Return the smallest double provided
 		static double minDouble(const double kdA, const double kdB)
 		{
@@ -76,34 +55,62 @@ class Utils
 		static int maxInt(const int kiA, const int kiB, const int kiC) { return maxInt(maxInt(kiA, kiB), kiC); }
 
 		// Return is point is within area
-		static bool pointInArea(const Vertex kPoint, const Vertex kAreaUpperBound, const Vertex kAreaLowerBound)
+		static bool pointInArea(const ArPose kPoint, const ArPose kAreaUpperBound, const ArPose kAreaLowerBound)
 		{
 			// If point.x is less than lower bound: Out of bounds
-			if (kPoint.x <= kAreaLowerBound.x) return false;
+			if (kPoint.getX() <= kAreaLowerBound.getX()) return false;
 
 			// If point.y is less than lower bound: Out of bounds
-			if (kPoint.y <= kAreaLowerBound.y) return false;
+			if (kPoint.getY() <= kAreaLowerBound.getY()) return false;
 
 			// If point.x is greater than upper bound: Out of bounds
-			if (kPoint.x >= kAreaUpperBound.x) return false;
+			if (kPoint.getX() >= kAreaUpperBound.getX()) return false;
 
 			// If point.y is greater than upper bound: Out of bounds
-			if (kPoint.y >= kAreaUpperBound.y) return false;
+			if (kPoint.getY() >= kAreaUpperBound.getY()) return false;
 
 			// No False returns called: call return True
 			return true;
 		}
-		// For sf::Vector2f input
-		static bool pointInArea(const sf::Vector2f kPoint, const sf::Vector2f kAreaUpperBound, const sf::Vector2f kAreaLowerBound) 
-		{
-			return pointInArea(Vertex(kPoint.x, kPoint.y), Vertex(kAreaUpperBound.x, kAreaUpperBound.y), Vertex(kAreaLowerBound.x, kAreaLowerBound.y)); 
-		}
 
-		static double magnitude(const Vertex kVector) { return sqrt(pow(kVector.x, 2) + pow(kVector.y, 2)); }
+		static double magnitude(const sf::Vector2f kVector) { return sqrt(pow(kVector.x, 2) + pow(kVector.y, 2)); }
 
-		static double angleFromUnitVec(const Vertex kUnitVector) { return (atan2(kUnitVector.y, kUnitVector.x) / g_kfPi) * 180; }
+		static double angleFromUnitVec(const sf::Vector2f kUnitVector) { return (atan2(kUnitVector.y, kUnitVector.x) / g_kfPi) * 180; }
 
 		static double invertDouble(const double kDouble) { return kDouble * -1; }
+
+		// sf::Vector2f: Returns Point rotated around pivot
+		static sf::Vector2f rotateAroundPoint(const sf::Vector2f kPivot, sf::Vector2f kPoint, const float kfAngle)
+		{
+			// Declares proportion of new pos in x/y
+			sf::Vector2f unitVec = angleUnitVector(kfAngle);
+
+			// Point translated relative to origin
+			kPoint.x -= kPivot.x;
+			kPoint.y -= kPivot.y;
+
+			// Calculates the new X/Y being used to translate the point
+			float newX = kPoint.x * unitVec.x - kPoint.y * unitVec.y;
+			float newY = kPoint.x * unitVec.y + kPoint.y * unitVec.x;
+
+			// Translates point back relative to pivot
+			kPoint.x = newX + kPivot.x;
+			kPoint.y = newY + kPivot.y;
+
+			// Returns new point
+			return kPoint;
+		}
+
+		// sf::Vector2f: Returns a Unit Vector
+		static sf::Vector2f angleUnitVector(const sf::Vector2f kVector)
+		{
+			return kVector / (float)Utils::magnitude(kVector);
+		}
+		// sf::Vector2f: Returns a Unit Vector
+		static sf::Vector2f angleUnitVector(const double kdAngle)
+		{
+			return sf::Vector2f(cosf(kdAngle * g_kfDegToRad), sinf(kdAngle * g_kfDegToRad));
+		}
 };
 
 #endif
