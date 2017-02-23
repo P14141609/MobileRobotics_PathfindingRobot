@@ -19,12 +19,6 @@ void Pathfinding::createNodes()
 {
 	std::cerr << "\n Generating nodes for A* pathfinding... \n";
 
-	ArRobotPacket pkt_SimReset;
-	pkt_SimReset.setID(ArCommands::PULSE);
-	pkt_SimReset.uByteToBuf(0); // argument type: ignored
-	pkt_SimReset.finalizePacket();
-	m_pRobot->getDeviceConnection()->write(pkt_SimReset.getBuf(), pkt_SimReset.getLength());
-
 	// For every line segment in the map
 	for (unsigned int i = 0; i < m_map.getLines()->size(); i++)
 	{
@@ -118,7 +112,6 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		for (std::shared_ptr<Node> node : m_pNodes)
 		{
 			node->h = manhattanDist(node, targetNode);
-			//node->h = Utils::magnitude(Vertex(targetNode->position.x - node->position.getX(), targetNode->position.y - node->position.getY()));
 		}
 
 		///////////////////// Creating Open and Closed Lists /////////////////////

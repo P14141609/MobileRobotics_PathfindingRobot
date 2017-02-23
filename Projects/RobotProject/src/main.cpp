@@ -142,11 +142,6 @@ bool read_MapInfo(const std::string ksFilePath, ArPose* startPose, ArPose* goalP
 	return true;
 }
 
-static void callback_mapchange()
-{
-	//
-}
-
 int main(int argc, char **argv)
 {
 	// Aria Setup
@@ -235,10 +230,6 @@ int main(int argc, char **argv)
 
 			// turn on the motors
 			robot.enableMotors();
-
-			// USED FOR WANDER
-			// Intitialises a seed for rand()
-			//srand((unsigned int)time(NULL));
 
 			// add a set of actions that combine together to effect the wander behavior
 			ArActionStallRecover recover;
