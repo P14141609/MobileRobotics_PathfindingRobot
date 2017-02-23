@@ -39,6 +39,9 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{c1cd61d7-ee94-471e-944e-388a7fcaecc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Maps">
+      <UniqueIdentifier>{f77deb14-9715-4b9f-803b-885eafdd9844}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\avoid.cpp">
@@ -88,5 +91,28 @@
     <ClInclude Include="include\pathfinding.h">
       <Filter>Header Files\Robot Systems</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\maps\Circle.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Map1.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Mine.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Mine_Debris.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Parrelogram.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Square.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
+    <None Include="res\maps\Star.map">
+      <Filter>Resource Files\Maps</Filter>
+    </None>
   </ItemGroup>
 </Project>

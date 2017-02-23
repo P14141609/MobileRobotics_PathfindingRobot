@@ -1,8 +1,8 @@
 2D-Map
 Resolution: 0
-LineMinPos: -10000 -10000
-LineMaxPos: 10000 10000
-NumLines: 4
+LineMinPos: -12973 -13543
+LineMaxPos: 13130 12664
+NumLines: 6
 LinesAreSorted: true
 MapInfo: DockType "Name=Dock" "Label=Dock" "NameRequired=1" "Color0=0xffff00" "Color1=0x000000" "Color2=0x000000" "Heading=Required"
 MapInfo: GoalType "Name=Goal" "Label=Goal" "NameRequired=1" "Color0=0x008080" "Color1=0x00ffff" "Color2=0x008080"
@@ -17,10 +17,13 @@ SchedInfo: Current "_Sunday"
 SchedInfo: Current "_Thursday"
 SchedInfo: Current "_Tuesday"
 SchedInfo: Current "_Wednesday"
-Cairn: RobotHome -275 -856 0.000000 "" ICON ""
+Cairn: RobotHome -11235 11185 -45.493050 "" ICON ""
+Cairn: Goal 11326 -11424 0.000000 "" ICON "New Goal"
 LINES
+-12973 11747 -11880 12664
 -10000 -10000 10000 -10000
 -10000 10000 -10000 -10000
 -10000 10000 10000 10000
 10000 10000 10000 -10000
+11931 -13543 13130 -12379
 DATA
