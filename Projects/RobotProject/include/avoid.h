@@ -11,14 +11,19 @@ class Avoid : public BaseAction
 {
 	public:
 	
-		Avoid(); // Constructor
-		virtual ~Avoid() {}  // Destructor
+		// Constructor
+		Avoid(); 
+		// Deconstructor
+		virtual ~Avoid() {} 
 
-		virtual ArActionDesired * fire(ArActionDesired d); // Body of the action
-		ArActionDesired desiredState; // Holds state of the robot that we wish to action
+		// Body of the action
+		virtual ArActionDesired * fire(ArActionDesired d);
+		// State of the robot that we wish to action
+		ArActionDesired desiredState;
 
 	private:
 
+		// Calculates the action's state
 		void calcState();
 };
 

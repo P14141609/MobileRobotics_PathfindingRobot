@@ -6,10 +6,11 @@
 class Node
 {
 	public:
+
 		// Default Constructor
 		Node() {}
 
-		// In-world coords
+		// In-world coordinates
 		ArPose position;
 
 		// Previous Node in the path
@@ -18,14 +19,14 @@ class Node
 		// Whether the Node is accessible for pathing
 		bool bAccessible = true;
 
-		// Position within a vector of Nodes
+		// Index position within a vector of Nodes
 		unsigned int index;
 
-		// Total Movement Cost from start Node to this Node
+		// G Value: Total Movement Cost from start Node to this Node
 		double g = 0;
-		// Distance to target Node
+		// H Value: Distance to target Node
 		double h = 0;
-		// F Value: Sum of G + H
+		// F Value: Combined Heuristic
 		double f = 0;
 };
 

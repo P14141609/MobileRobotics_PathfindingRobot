@@ -18,43 +18,43 @@ class Utils
 {
 	public:
 		
-		// Return the smallest double provided
+		// Returns the smallest double provided
 		static double minDouble(const double kdA, const double kdB)
 		{
 			if (kdA <= kdB) return kdA;
 			else return kdB;
 		}
-		// For 3 inputs
+		// Returns the smallest double provided
 		static double minDouble(const double kdA, const double kdB, const double kdC) { return minDouble(minDouble(kdA, kdB), kdC); }
 
-		// Return the largest double provided
+		// Returns the largest double provided
 		static double maxDouble(const double kdA, const double kdB)
 		{
 			if (kdA >= kdB) return kdA;
 			else return kdB;
 		}
-		// For 3 inputs
+		// Returns the largest double provided
 		static double maxDouble(const double kdA, const double kdB, const double kdC) { return maxDouble(maxDouble(kdA, kdB), kdC); }
 
-		// Return the smallest integer provided
+		// Returns the smallest integer provided
 		static int minInt(const int kiA, const int kiB)
 		{
 			if (kiA <= kiB) return kiA;
 			else return kiB;
 		}
-		// For 3 inputs
+		// Returns the smallest integer provided
 		static int minInt(const int kiA, const int kiB, const int kiC) { return minInt(minInt(kiA, kiB), kiC); }
 
-		// Return the largest integer provided
+		// Returns the largest integer provided
 		static int maxInt(const int kiA, const int kiB)
 		{
 			if (kiA >= kiB) return kiA;
 			else return kiB;
 		}
-		// For 3 inputs
+		// Returns the largest integer provided
 		static int maxInt(const int kiA, const int kiB, const int kiC) { return maxInt(maxInt(kiA, kiB), kiC); }
 
-		// Return is point is within area
+		// Returns whether a point is within the lower and upper bounds
 		static bool pointInArea(const ArPose kPoint, const ArPose kAreaUpperBound, const ArPose kAreaLowerBound)
 		{
 			// If point.x is less than lower bound: Out of bounds
@@ -73,45 +73,27 @@ class Utils
 			return true;
 		}
 
+		// Returns the magnitude of a vector
 		static double magnitude(const sf::Vector2f kVector) { return sqrt(pow(kVector.x, 2) + pow(kVector.y, 2)); }
 
+		// Returns the angle of a unit vector in degrees
 		static double angleFromUnitVec(const sf::Vector2f kUnitVector) { return (atan2(kUnitVector.y, kUnitVector.x) / g_kfPi) * 180; }
 
+		// Returns the input inverted from positive to negative and vice versa
 		static double invertDouble(const double kDouble) { return kDouble * -1; }
 
-		// sf::Vector2f: Returns Point rotated around pivot
-		static sf::Vector2f rotateAroundPoint(const sf::Vector2f kPivot, sf::Vector2f kPoint, const float kfAngle)
-		{
-			// Declares proportion of new pos in x/y
-			sf::Vector2f unitVec = angleUnitVector(kfAngle);
-
-			// Point translated relative to origin
-			kPoint.x -= kPivot.x;
-			kPoint.y -= kPivot.y;
-
-			// Calculates the new X/Y being used to translate the point
-			float newX = kPoint.x * unitVec.x - kPoint.y * unitVec.y;
-			float newY = kPoint.x * unitVec.y + kPoint.y * unitVec.x;
-
-			// Translates point back relative to pivot
-			kPoint.x = newX + kPivot.x;
-			kPoint.y = newY + kPivot.y;
-
-			// Returns new point
-			return kPoint;
-		}
-
-		// sf::Vector2f: Returns a Unit Vector
+		// Returns a unit vector
 		static sf::Vector2f angleUnitVector(const sf::Vector2f kVector)
 		{
 			return kVector / (float)Utils::magnitude(kVector);
 		}
-		// sf::Vector2f: Returns a Unit Vector
+		// Returns a unit vector
 		static sf::Vector2f angleUnitVector(const double kdAngle)
 		{
 			return sf::Vector2f(cosf(kdAngle * g_kfDegToRad), sinf(kdAngle * g_kfDegToRad));
 		}
 
+		// Returns a value bound to a given min and max
 		static double bindNum(const double kdNumber, const double kdMin, const double kdMax)
 		{
 			double dResult = kdNumber;

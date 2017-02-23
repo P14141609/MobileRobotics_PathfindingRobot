@@ -25,7 +25,7 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 		<< '\n';
 
 	// Get sonar readings
-	calcSensors();
+	updateSensors();
 
 	switch (m_state)
 	{

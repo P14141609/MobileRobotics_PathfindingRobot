@@ -23,29 +23,42 @@ struct PIDData
 class Path : public BaseAction
 {
 	public:
+
+		// Constructor
+		Path(const ArMap kMap, const ArPose kStartPose, const ArPose kGoalPose);
+		// Deconstructor
+		virtual ~Path() {}  
+
+		// Body of the action
+		virtual ArActionDesired * fire(ArActionDesired d); 
+		// State of the robot that we wish to action
+		ArActionDesired desiredState; 
 	
-		Path(const ArMap kMap, const ArPose kStartPose, const ArPose kGoalPose); // Constructor
-		virtual ~Path() {}  // Destructor
-	
-		virtual ArActionDesired * fire(ArActionDesired d); // Body of the action
-		ArActionDesired desiredState; // Holds state of the robot that we wish to action
-	
+		// Returns the Pathfinding object
 		std::shared_ptr<Pathfinding> getPathfinding() { return m_pPathfinding; }
 
 	private:
 
+		// Pathfinding object for creating a path
 		std::shared_ptr<Pathfinding> m_pPathfinding = nullptr;
-		bool m_bPathComplete;
 
+		// If the path has been complete
+		bool m_bPathComplete;
+		
+		// PID data
 		PIDData m_PID;
 
-		void calcState();
-
-		// Calcuating functions
+		// Calculates proportional gain
 		double calcP();
+		// Calculates integral gain
 		double calcI();
+		// Calculates derivative gain
 		double calcD();
+		// Calculates RMSE
 		double calcRMSE();
+
+		// Calculates the action's state
+		void calcState();
 };
 
 #endif

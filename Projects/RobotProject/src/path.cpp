@@ -37,7 +37,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 		<< '\n';
 
 	// Get sonar readings
-	calcSensors();
+	updateSensors();
 
 	// If pathfinding nodes have not been created
 	if (m_pPathfinding->getNodes().empty()) { m_pPathfinding->createNodes(); };

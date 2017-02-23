@@ -18,74 +18,95 @@ class Pathfinding
 {
 	public:
 
-		Pathfinding(const ArMap kMap, ArRobot* kRobot, const ArPose kStartPose, const ArPose kGoalPose); // Constructor
-		virtual ~Pathfinding() {}  // Deconstructor
+		// Constructor
+		Pathfinding(const ArMap kMap, ArRobot* kRobot, const ArPose kStartPose, const ArPose kGoalPose);
+		// Deconstructor
+		virtual ~Pathfinding() {}
 	
-		// Creates nodes for pathfinding
+		// Creates Nodes for pathfinding
 		void createNodes();
 
-		// Creates a path to target node
+		// Creates a path to target Node
 		void createPathTo(std::shared_ptr<Node> targetNode);
 
 		// Returns the Node that is closest to the position
 		std::shared_ptr<Node> closestNode(const ArPose kPosition);
 
-		// Draws pathfinding info to a display
-		void draw(sf::RenderTarget& target);
-
+		// Pops the Node off the front of the path queue
 		void popPath() { m_path.pop(); }
 
+		// Draws pathfinding representation to a display
+		void draw(sf::RenderTarget& target);
+
+		// Returns the size of the View
 		sf::Vector2f getViewSize() { return m_mapSize + m_displayBezel*2.0f; }
 
+		// Returns the goal pose
 		ArPose getGoalPose() { return m_goalPose; }
+		// Returns the start pose
 		ArPose getStartPose() { return m_startPose; }
 
+		// Returns the vector of Nodes
 		std::vector<std::shared_ptr<Node>> getNodes() { return m_pNodes; }
+
+		// Returns the path queue
 		std::queue<ArPose> getPath() { return m_path; }
 
 	private:
 	
+		// Pointer to Robot
 		ArRobot* m_pRobot;
 
+		// Start pose
 		ArPose m_startPose;
+		// Goal pose
 		ArPose m_goalPose;
 
-		// Stores the diameter of the Nodes
+		// Diameter of the Nodes
 		double m_dNodeDiameter;
 
+		// Calculates which Nodes are accessible
 		void calcAccessibility();
 
+		// Calculates G value of a Node
 		double calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode);
 
+		// Returns whether a Node is within a distance of a Line
 		bool nodeNearLine(const ArLineSegment kLine, const ArPose kNodePos, const double kDistance);
 
-		// Stores two corners of the map
+		// Two corners of the map in world coords
 		ArPose m_mapUpperBounds = ArPose(INT32_MIN, INT32_MIN);
 		ArPose m_mapLowerBounds = ArPose(INT32_MAX, INT32_MAX);
-		// Stores size of the map
+		// Size of the map
 		sf::Vector2f m_mapSize;
 
+		// Vector of Nodes
 		std::vector<std::shared_ptr<Node>> m_pNodes;
+		// Queue of Nodes forming a path
 		std::queue<ArPose> m_path;
 
+		// Whether Nodes have been initialised
 		bool m_bNodesInit = false;
 
+		// Display Bezel
 		sf::Vector2f m_displayBezel;
 
+		// Map Data
 		ArMap m_map;
 
+		// Returns whether a Node is within a vector of Nodes
 		bool nodeInVector(std::shared_ptr<Node> nodeToFind, std::vector<std::shared_ptr<Node>> vector);
 		
-		// Returns a distance from one node to another
+		// Returns the distance from one Node to another
 		int manhattanDist(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode);
 
-		// Returns a vector of adjacent nodes
+		// Returns a vector of accessible adjacent Nodes
 		std::vector<std::shared_ptr<Node>> getAdjacentNodes(std::shared_ptr<Node> node);
 
-		// Returns a Node based on position
+		// Returns a Node at a given pose
 		std::shared_ptr<Node> nodeFromPose(const ArPose kPosition);
 		
-		// Queues up the path of nodes needed to reach the destination
+		// Forms a queue of Nodes to the given Node
 		void queuePath(std::shared_ptr<Node> node);
 };
 

@@ -8,27 +8,30 @@
 
 struct Range
 {
-	// Sensor ranges
+	// Minimum range
 	double dMin;
+	// Maximum range
 	double dMax;
 };
 
 struct Distance
 {
-	// Sensor distances
-	// Front
+	// Sensor distance: Front
 	double dFront = INT32_MAX;
-	// Two halves of Front
-	double dLeftFront = INT32_MAX;
-	double dRightFront = INT32_MAX;
-	// Sides
+	// Sensor distance: Front-Left
+	double dFrontLeft = INT32_MAX;
+	// Sensor distance: Front-Right
+	double dFrontRight = INT32_MAX;
+	// Sensor distance: Left
 	double dLeft = INT32_MAX;
+	// Sensor distance: Right
 	double dRight = INT32_MAX;
 };
 
 class Sensor
 {
 	public:	
+
 		// Sensor ranges
 		Range m_range;
 

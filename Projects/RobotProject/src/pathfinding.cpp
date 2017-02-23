@@ -11,7 +11,7 @@ Pathfinding::Pathfinding(const ArMap kMap, ArRobot* kRobot, const ArPose kStartP
 	m_startPose = kStartPose;
 	m_goalPose = kGoalPose;
 
-	m_dNodeDiameter = 150; // 0.25m // Robot Diameter 0.5m
+	m_dNodeDiameter = 150; // 0.15m // Robot Diameter 0.5m
 }
 
 // Creates Nodes for pathfinding
