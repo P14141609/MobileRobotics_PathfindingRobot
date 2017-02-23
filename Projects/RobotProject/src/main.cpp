@@ -195,10 +195,10 @@ int main(int argc, char **argv)
 			if (!robotConnector.connectRobot())
 			{
 				ArLog::log(ArLog::Terse, "Could not connect to the robot.");
-				if (argParser.checkHelpAndWarnUnparsed()) Aria::logOptions(); Aria::exit(1);
+				if (argParser.checkHelpAndWarnUnparsed()) { Aria::logOptions(); Aria::exit(1); }
 			}
 			// Trigger argument parsing
-			if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed()) Aria::logOptions(); Aria::exit(1);
+			if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed()) { Aria::logOptions(); Aria::exit(1); }
 			ArKeyHandler keyHandler;
 			Aria::setKeyHandler(&keyHandler);
 			robot.attachKeyHandler(&keyHandler);
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 			robot.addRangeDevice(&sonar);
 			robot.runAsync(true);
 			// try to connect to laser. if fail, warn but continue, using sonar only
-			if (!laserConnector.connectLasers()) ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only.");
+			if (!laserConnector.connectLasers()) { ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only."); }
 			// Turn on the motors
 			robot.enableMotors();
 
