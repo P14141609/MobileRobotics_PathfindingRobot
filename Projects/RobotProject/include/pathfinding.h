@@ -33,17 +33,6 @@ class Pathfinding
 		// Draws pathfinding info to a display
 		void draw(sf::RenderTarget& target);
 
-		// Returns the true world Pose
-		ArPose truePose(const ArPose kPose) { return kPose + m_startPose; }
-		double trueX(const double kX) { return Utils::invertDouble(truePose(ArPose(kX, 0.0, 0.0)).getX()) + m_startPose.getX()*2; }
-		double trueY(const double kY) { return Utils::invertDouble(truePose(ArPose(0.0, kY, 0.0)).getY()) + m_startPose.getY()*2; }
-		double trueTh(const double kTh) { return truePose(ArPose(0.0, 0.0, kTh)).getTh() + 180; }
-
-		//ArPose truePose(const ArPose kPose) { return ArPose(trueX(kPose.getX()), trueY(kPose.getY()), trueTh(kPose.getTh())); }
-		//double trueX(const double kX) { return Utils::rotateAroundPoint(sf::Vector2f(m_startPose.getX(), m_startPose.getY()), sf::Vector2f(kX + m_startPose.getX(), m_startPose.getY()), 180.0).x; }
-		//double trueY(const double kY) { return kY + m_startPose.getTh(); }
-		//double trueTh(const double kTh) { return kTh + m_startPose.getTh(); }
-
 		void popPath() { m_path.pop(); }
 
 		sf::Vector2f getViewSize() { return m_mapSize + m_displayBezel*2.0f; }

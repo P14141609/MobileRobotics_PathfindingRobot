@@ -111,6 +111,16 @@ class Utils
 		{
 			return sf::Vector2f(cosf(kdAngle * g_kfDegToRad), sinf(kdAngle * g_kfDegToRad));
 		}
+
+		static double bindNum(const double kdNumber, const double kdMin, const double kdMax)
+		{
+			double dResult = kdNumber;
+
+			while (dResult > kdMax) dResult -= kdMax;
+			while (dResult < kdMin) dResult += kdMax;
+
+			return dResult;
+		}
 };
 
 #endif

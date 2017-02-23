@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 			// add a set of actions that combine together to effect the wander behavior
 			ArActionStallRecover recover;
 			ArActionBumpers bumpers;
-
+			
 			// Actions
 			Avoid avoid;
 			Path path(map, robotStartPose, robotGoalPose);
@@ -252,6 +252,19 @@ int main(int argc, char **argv)
 			robot.addAction(&bumpers, 75);
 			robot.addAction(&avoid, 50);
 			robot.addAction(&path, 25);
+
+			// Resets the robot to the map robot home pose
+			ArRobotPacket pkt;
+			pkt.setID(ArCommands::SIM_SET_POSE);
+			pkt.uByteToBuf(0); // argument type: ignored.
+			pkt.byte4ToBuf(robotStartPose.getX());
+			pkt.byte4ToBuf(robotStartPose.getY());
+			pkt.byte4ToBuf(robotStartPose.getTh());
+			pkt.finalizePacket();
+			robot.getDeviceConnection()->write(pkt.getBuf(), pkt.getLength());
+			
+			// Sets the pose of the robot to the start pose so odometry starts from that pose instead of 0,0,0
+			robot.moveTo(robotStartPose, false);
 
 			// While the window is open
 			while (window.isOpen())

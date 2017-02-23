@@ -70,24 +70,16 @@ ArActionDesired * Path::fire(ArActionDesired d)
 				else
 				{
 					std::cerr
-						<< "\n m_pPathfinding->getGoalPose.getX(): " << m_pPathfinding->getGoalPose().getX()
-						<< "\n m_pPathfinding->getGoalPose.getY(): " << m_pPathfinding->getGoalPose().getY()
-						<< "\n m_pPathfinding->getStartPose.getX(): " << m_pPathfinding->getStartPose().getX()
-						<< "\n m_pPathfinding->getStartPose.getY(): " << m_pPathfinding->getStartPose().getY()
-						<< "\n m_pPathfinding->getStartPose.getTh(): " << m_pPathfinding->getStartPose().getTh()
-
 						<< "\n m_pPathfinding->getPath().front().getX(): " << m_pPathfinding->getPath().front().getX()
 						<< "\n m_pPathfinding->getPath().front().getY(): " << m_pPathfinding->getPath().front().getY()
-						<< "\n m_pPathfinding->trueX(myRobot->getX()): " << m_pPathfinding->trueX(myRobot->getX())
-						<< "\n m_pPathfinding->trueY(myRobot->getY()): " << m_pPathfinding->trueY(myRobot->getY())
-						<< "\n m_pPathfinding->trueTh(myRobot->getTh()): " << m_pPathfinding->trueTh(myRobot->getTh())
+						<< "\n myRobot->getX(): " << myRobot->getX()
+						<< "\n m_pPathfinding->myRobot->getY(): " << myRobot->getY()
 						<< '\n';
 
-					double distToNode = Utils::magnitude(
-						sf::Vector2f(
-							m_pPathfinding->getPath().front().getX() - m_pPathfinding->trueX(myRobot->getX()),
-							m_pPathfinding->getPath().front().getY() - m_pPathfinding->trueY(myRobot->getY())
-					));
+					// Vector of displacement between Robot and the next Path Node
+					sf::Vector2f displacement = sf::Vector2f(m_pPathfinding->getPath().front().getX(), m_pPathfinding->getPath().front().getY()) - sf::Vector2f(myRobot->getX(), myRobot->getY());
+					// Distance to next Path Node
+					double distToNode = Utils::magnitude(displacement);
 
 					std::cerr << "\n distToNode: " << distToNode << '\n';
 
@@ -103,23 +95,16 @@ ArActionDesired * Path::fire(ArActionDesired d)
 					}
 					else
 					{
-						// Vector of displacement between Robot and the next Path point
-						sf::Vector2f angleVec = sf::Vector2f(m_pPathfinding->trueX(myRobot->getX()), m_pPathfinding->trueY(myRobot->getY())) - sf::Vector2f(m_pPathfinding->getPath().front().getX(), m_pPathfinding->getPath().front().getY());
-						// Unit vector of this displacement
-						sf::Vector2f angleUnitVec = angleVec / (float)Utils::magnitude(angleVec);
+						// Angle of the line in degrees
+						double lineAngle = Utils::angleFromUnitVec(Utils::angleUnitVector(displacement));
 
-						// Angle of the unit vector in degrees
-						double lineAngle = Utils::angleFromUnitVec(angleUnitVec);
-						double robotAngle = m_pPathfinding->trueTh(myRobot->getTh());
+						lineAngle = Utils::bindNum(lineAngle, 0, 360);
 
-						while (lineAngle > 360)  lineAngle -= 360;
-						while (lineAngle < 0)  lineAngle += 360;
-
-						double angleDiff = lineAngle - robotAngle;
+						double angleDiff = lineAngle - myRobot->getTh();
 
 						std::cerr
 							<< "\n lineAngle: " << lineAngle
-							<< "\n robotAngle: " << robotAngle
+							<< "\n myRobot->getTh(): " << myRobot->getTh()
 							<< "\n angleDiff: " << angleDiff
 							<< '\n';
 

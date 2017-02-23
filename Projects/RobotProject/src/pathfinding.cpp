@@ -19,6 +19,12 @@ void Pathfinding::createNodes()
 {
 	std::cerr << "\n Generating nodes for A* pathfinding... \n";
 
+	ArRobotPacket pkt_SimReset;
+	pkt_SimReset.setID(ArCommands::PULSE);
+	pkt_SimReset.uByteToBuf(0); // argument type: ignored
+	pkt_SimReset.finalizePacket();
+	m_pRobot->getDeviceConnection()->write(pkt_SimReset.getBuf(), pkt_SimReset.getLength());
+
 	// For every line segment in the map
 	for (unsigned int i = 0; i < m_map.getLines()->size(); i++)
 	{
@@ -123,10 +129,10 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		std::vector<std::shared_ptr<Node>> closedNodes;
 
 		// If Node at your current location exists
-		if (closestNode(truePose(m_pRobot->getPose())) != nullptr)
+		if (closestNode(m_pRobot->getPose()) != nullptr)
 		{
 			// Add Node at your current location to closed list
-			closedNodes.push_back(closestNode(truePose(m_pRobot->getPose())));
+			closedNodes.push_back(closestNode(m_pRobot->getPose()));
 		}
 		else
 		{
@@ -768,7 +774,7 @@ void Pathfinding::draw(sf::RenderTarget& target)
 			line[0] = sf::Vertex(sf::Vector2f(lastPoint.getX() - offset.x, Utils::invertDouble(lastPoint.getY() - offset.y)), colour);
 
 			// Sets the second point of the line at the position of the robot
-			line[1] = sf::Vertex(sf::Vector2f(trueX(m_pRobot->getX()) - offset.x, Utils::invertDouble(trueY(m_pRobot->getY()) - offset.y)), colour);
+			line[1] = sf::Vertex(sf::Vector2f(m_pRobot->getX() - offset.x, Utils::invertDouble(m_pRobot->getY() - offset.y)), colour);
 
 			// Draws the line to target
 			target.draw(line, 2, sf::Lines);
@@ -805,13 +811,12 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		}
 
 		// ROBOT
-		sf::CircleShape circleShape;
+		rectShape.setSize(sf::Vector2f(m_pRobot->getRobotLength(), m_pRobot->getRobotWidth())); // Size of Robot
+		rectShape.setFillColor(sf::Color(255.0f, 0.0f, 0.0f, 255.0f)); // Red
+		rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
+		rectShape.setPosition( sf::Vector2f( m_pRobot->getX() - offset.x, Utils::invertDouble(m_pRobot->getY() - offset.y) ) );
+		rectShape.setRotation(Utils::invertDouble(m_pRobot->getTh()));
 
-		circleShape.setRadius(m_pRobot->getRobotRadius()); // Size of Robot
-		circleShape.setFillColor(sf::Color(255.0f, 0.0f, 0.0f, 255.0f)); // Red
-		circleShape.setOrigin(sf::Vector2f(circleShape.getRadius(), circleShape.getRadius())); // Origin center
-		circleShape.setPosition( sf::Vector2f( trueX(m_pRobot->getX()) - offset.x, Utils::invertDouble(trueY(m_pRobot->getY()) - offset.y) ) );
-
-		target.draw(circleShape);
+		target.draw(rectShape);
 	}
 }
