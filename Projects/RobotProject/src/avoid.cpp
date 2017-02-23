@@ -15,6 +15,7 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
+
 	system("cls");
 	std::cerr << "\n Avoid State: " << stateToString(m_state) << '\n';
 
@@ -24,28 +25,29 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 		<< "\n myRobot.Pose: x(" << myRobot->getX() << ") y(" << myRobot->getY() << ") th(" << myRobot->getTh() << ")"
 		<< '\n';
 
-	// Get sonar readings
+	// Updates sensor readings
 	updateSensors();
 
 	switch (m_state)
 	{
-		case IDLE:
-		{
-		}break;
+		case IDLE: break;
 
 		case ACTIVE:
 		{
 			// If both sides are neaby
 			if ((m_sensor.m_distance.dLeft <= m_sensor.m_range.dMax) && (m_sensor.m_distance.dRight <= m_sensor.m_range.dMax))
 			{
+				// If left side is closer
 				if (m_sensor.m_distance.dLeft <= m_sensor.m_distance.dRight)
 				{
+					// Turn Right
 					m_dDeltaHeading = -20.0;
 					m_dSpeed = 0.0;
 				}
-
+				// Else right side is closer
 				else
 				{
+					// Turn Left
 					m_dDeltaHeading = 20.0;
 					m_dSpeed = 0.0;
 				}
@@ -53,14 +55,17 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 			// Else If a single edge is nearby
 			else
 			{
+				// If left side is closer
 				if (m_sensor.m_distance.dLeft <= m_sensor.m_distance.dRight)
 				{
+					// Turn Right
 					m_dDeltaHeading = -10.0;
 					m_dSpeed = 0.0;
 				}
-
+				// Else right side is closer
 				else
 				{
+					// Turn Left
 					m_dDeltaHeading = 10.0;
 					m_dSpeed = 0.0;
 				}

@@ -25,6 +25,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
+
 	std::cerr << "\n Path State: " << stateToString(m_state) << '\n';
 
 	std::cerr
@@ -36,7 +37,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 		<< "\n RMSE: " << calcRMSE()
 		<< '\n';
 
-	// Get sonar readings
+	// Updates sensor readings
 	updateSensors();
 
 	// If pathfinding nodes have not been created
@@ -46,27 +47,27 @@ ArActionDesired * Path::fire(ArActionDesired d)
 	{
 		case IDLE:
 		{
+			// Clears PID error vector
 			m_PID.error.clear();
 		}break;
 
 		case ACTIVE:
 		{
-			desiredState.setVel(0.0); // set the speed of the robot in the desired state
-			desiredState.setDeltaHeading(0.0); // Set the heading change of the robot
-
+			// If path has been completed
 			if (m_bPathComplete)
 			{
 				std::cerr << "\n Path Complete. \n";
 			}
+			// Else path is underway
 			else
 			{
-				// If the path is empty
+				// If the path queue is empty
 				if (m_pPathfinding->getPath().empty())
 				{
-					// Creates path to the Node closest to the goal Pose
+					// Creates path to the Node closest to the goal pose
 					m_pPathfinding->createPathTo(m_pPathfinding->closestNode(m_pPathfinding->getGoalPose()));
 				}
-				// Path is not empty
+				// Path queue is not empty
 				else
 				{
 					std::cerr
@@ -76,21 +77,26 @@ ArActionDesired * Path::fire(ArActionDesired d)
 						<< "\n m_pPathfinding->myRobot->getY(): " << myRobot->getY()
 						<< '\n';
 
-					// Vector of displacement between Robot and the next Path Node
+					// Vector of displacement between Robot and the next path Node
 					sf::Vector2f displacement = sf::Vector2f(m_pPathfinding->getPath().front().getX(), m_pPathfinding->getPath().front().getY()) - sf::Vector2f(myRobot->getX(), myRobot->getY());
-					// Distance to next Path Node
+					// Distance to next path Node
 					double distToNode = Utils::magnitude(displacement);
 
 					std::cerr << "\n distToNode: " << distToNode << '\n';
 
+					// If the Robot is close to the Node
 					if (distToNode < myRobot->getRobotRadius())
 					{
+						// If Node is the last in the path
 						if (m_pPathfinding->getPath().size() == 1)
 						{
+							// Set path to completed
 							m_bPathComplete = true;
 						}
 
+						// Pops Node off queue
 						m_pPathfinding->popPath();
+						// Clears PID error vector
 						m_PID.error.clear();
 					}
 					else
@@ -98,8 +104,10 @@ ArActionDesired * Path::fire(ArActionDesired d)
 						// Angle of the line in degrees
 						double lineAngle = Utils::angleFromUnitVec(Utils::angleUnitVector(displacement));
 
+						// Binds the line angle from 0-360 degrees
 						lineAngle = Utils::bindNum(lineAngle, 0, 360);
 
+						// Difference between the line and robot angles
 						double angleDiff = lineAngle - myRobot->getTh();
 
 						std::cerr
@@ -108,12 +116,13 @@ ArActionDesired * Path::fire(ArActionDesired d)
 							<< "\n angleDiff: " << angleDiff
 							<< '\n';
 
-						// Setpoint
+						// Angle difference applied to setpoint
 						m_PID.dSetPoint = angleDiff;
 
+						// Pushes setpoint onto error vector
 						m_PID.error.push_back(m_PID.dSetPoint);
 
-						// Calculate output
+						// Calculates output
 						m_PID.dOutput = m_PID.dSetPoint;// calcP() + calcI() + calcD();
 
 						// Implement control action
@@ -135,28 +144,29 @@ ArActionDesired * Path::fire(ArActionDesired d)
 
 double Path::calcP()
 {
-	if (m_PID.error.size() > 0)
+	// If error vector is not empty
+	if (!m_PID.error.empty())
 	{
 		// P = Kp * e(t)
 		return m_PID.dKp * m_PID.error.at(m_PID.error.size() - 1);
 	}
-	else
-		return 0.0;
+	// Else return 0
+	else return 0.0;
 }
 double Path::calcI()
 {
-	if (m_PID.error.size() > 0)
+	// If error vector is not empty
+	if (!m_PID.error.empty())
 	{
 		// Threshold: num of errors to sum
 		unsigned int threshold = 100;
-		// Sum errors
+		// Sum of errors
 		double sumOfErrors = 0.0;
 		unsigned int iLastErrorToSum = (m_PID.error.size() - threshold);
 
-		// For every entry in m_error
+		// For every entry in the error vector
 		for (unsigned int i = 0; i < m_PID.error.size(); i++)
 		{
-			//I cannot make a bloody for loop at sums the last x entries
 			// If i is greater or equal to size-threshold
 			// Eg i = 12 this is greater than (size 25 - threshold 15 = 10): add to sum
 			if (i >= iLastErrorToSum)
@@ -171,20 +181,19 @@ double Path::calcI()
 		// Multiply by gain
 		return dI;
 	}
-	else
-		return 0.0;
+	// Else return 0
+	else return 0.0;
 }
 double Path::calcD()
 {
+	// If error vector contains more than 1 error
 	if (m_PID.error.size() > 1)
 	{
 		// D = Kd * (e(t) - e(t-1))
 		return m_PID.dKd * (m_PID.error.at(m_PID.error.size() - 1) - m_PID.error.at(m_PID.error.size() - 2));
 	}
-	else
-	{
-		return 0.0;
-	}
+	// Else return 0
+	else return 0.0;
 }
 double Path::calcRMSE()
 {

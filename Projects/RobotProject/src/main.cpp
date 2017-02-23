@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 	ArArgumentParser argParser(&argc, argv);
 	argParser.loadDefaultArguments();
 
-	// String for input
+	// String for map choice
 	std::string sInput;
 
 	std::cerr << "\n Enter a Map name to load: './res/maps/YOURINPUT.map': ";
@@ -172,11 +172,11 @@ int main(int argc, char **argv)
 	else 
 	{
 		// Declares ArPose vairables for robot start and goal
-		ArPose robotStartPose(INT32_MIN, INT32_MIN, INT32_MIN);
-		ArPose robotGoalPose(INT32_MIN, INT32_MIN, INT32_MIN);
+		ArPose startPose(INT32_MIN, INT32_MIN, INT32_MIN);
+		ArPose goalPose(INT32_MIN, INT32_MIN, INT32_MIN);
 
 		// Attempts to read the map file and set the start and goal positions
-		if (!read_MapInfo(sMapDir, &robotStartPose, &robotGoalPose))
+		if (!read_MapInfo(sMapDir, &startPose, &goalPose))
 		{
 			std::cerr << '\n'; system("pause");
 		}
@@ -186,59 +186,41 @@ int main(int argc, char **argv)
 			// Instantiates window
 			sf::RenderWindow window(sf::VideoMode(1280, 720), "Pathfinding Representation - Coursework-2 (Submission 2) - Mobile Robotics - P14141609", sf::Style::Default);
 
+			// Robot Setup
 			ArRobot robot;
 			ArRobotConnector robotConnector(&argParser, &robot);
 			ArLaserConnector laserConnector(&argParser, &robot, &robotConnector);
-
 			// Always try to connect to the first laser:
 			argParser.addDefaultArgument("-connectLaser");
-
 			if (!robotConnector.connectRobot())
 			{
 				ArLog::log(ArLog::Terse, "Could not connect to the robot.");
-				if (argParser.checkHelpAndWarnUnparsed())
-				{
-					// -help not given, just exit.
-					Aria::logOptions();
-					Aria::exit(1);
-				}
+				if (argParser.checkHelpAndWarnUnparsed()) Aria::logOptions(); Aria::exit(1);
 			}
-
 			// Trigger argument parsing
-			if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed())
-			{
-				Aria::logOptions();
-				Aria::exit(1);
-			}
-
+			if (!Aria::parseArgs() || !argParser.checkHelpAndWarnUnparsed()) Aria::logOptions(); Aria::exit(1);
 			ArKeyHandler keyHandler;
 			Aria::setKeyHandler(&keyHandler);
 			robot.attachKeyHandler(&keyHandler);
-
 			puts("Press Escape to exit.");
-
 			ArSonarDevice sonar;
 			robot.addRangeDevice(&sonar);
-
 			robot.runAsync(true);
-
 			// try to connect to laser. if fail, warn but continue, using sonar only
-			if (!laserConnector.connectLasers())
-			{
-				ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only.");
-			}
-
-			// turn on the motors
+			if (!laserConnector.connectLasers()) ArLog::log(ArLog::Normal, "Warning: unable to connect to requested lasers, will wander using robot sonar only.");
+			// Turn on the motors
 			robot.enableMotors();
 
-			// add a set of actions that combine together to effect the wander behavior
+			// Robot Behaviour Setup
+			// Add a set of actions that combine together to effect the wander behavior
 			ArActionStallRecover recover;
 			ArActionBumpers bumpers;
 			
-			// Actions
+			// Defines Actions
 			Avoid avoid;
-			Path path(map, robotStartPose, robotGoalPose);
+			Path path(map, startPose, goalPose);
 
+			// Adds Actions to robot
 			robot.addAction(&recover, 100);
 			robot.addAction(&bumpers, 75);
 			robot.addAction(&avoid, 50);
@@ -247,15 +229,15 @@ int main(int argc, char **argv)
 			// Resets the robot to the map robot home pose
 			ArRobotPacket pkt;
 			pkt.setID(ArCommands::SIM_SET_POSE);
-			pkt.uByteToBuf(0); // argument type: ignored.
-			pkt.byte4ToBuf(robotStartPose.getX());
-			pkt.byte4ToBuf(robotStartPose.getY());
-			pkt.byte4ToBuf(robotStartPose.getTh());
+			pkt.uByteToBuf(0);
+			pkt.byte4ToBuf(startPose.getX());
+			pkt.byte4ToBuf(startPose.getY());
+			pkt.byte4ToBuf(startPose.getTh());
 			pkt.finalizePacket();
 			robot.getDeviceConnection()->write(pkt.getBuf(), pkt.getLength());
 			
 			// Sets the pose of the robot to the start pose so odometry starts from that pose instead of 0,0,0
-			robot.moveTo(robotStartPose, false);
+			robot.moveTo(startPose, false);
 
 			// While the window is open
 			while (window.isOpen())
@@ -267,7 +249,7 @@ int main(int argc, char **argv)
 					// If Closed event is called
 					if (event.type == sf::Event::Closed)
 					{
-						// Closes window
+						// Closes window and terminates Aria
 						window.close();
 						Aria::exit(0);
 					}
@@ -291,5 +273,6 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Terminates Aria
 	Aria::exit(0);
 }

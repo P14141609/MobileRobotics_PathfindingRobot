@@ -61,14 +61,16 @@ void Pathfinding::createNodes()
 		}
 	}
 
+	// Flags NodesInitialised boolean member as true
 	m_bNodesInit = true;
 
 	std::cerr << "\n Generating nodes for A* pathfinding... Finished.\n";
 
+	// Calculates the accessibility of the Nodes just created
 	calcAccessibility();
 }
 
-// Calculates the accessibility of the Nodes
+// Calculates which Nodes are accessible
 void Pathfinding::calcAccessibility()
 {
 	std::cerr << "\n Calculating node accessibility... \n";
@@ -98,7 +100,7 @@ void Pathfinding::calcAccessibility()
 	std::cerr << "\n Calculating node accessibility... Finished.\n";
 }
 
-// Creates a path to a target Node
+// Creates a path to target Node
 void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 {
 	std::cerr << "\n Generating path... \n";
@@ -111,22 +113,23 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		// For every Node, set h as dist to target Node
 		for (std::shared_ptr<Node> node : m_pNodes)
 		{
+			// Sets the Node's heuristic as the manhattan distance from the Node to the target
 			node->h = manhattanDist(node, targetNode);
 		}
 
 		///////////////////// Creating Open and Closed Lists /////////////////////
 
-		// Explanation: https://www.youtube.com/watch?v=KNXfSOx4eEE
 		// Declares vectors to store nodes to check and checked nodes
 		std::vector<std::shared_ptr<Node>> openNodes;
 		std::vector<std::shared_ptr<Node>> closedNodes;
 
-		// If Node at your current location exists
+		// If Node closest to your current location exists
 		if (closestNode(m_pRobot->getPose()) != nullptr)
 		{
 			// Add Node at your current location to closed list
 			closedNodes.push_back(closestNode(m_pRobot->getPose()));
 		}
+		// There is no Node 
 		else
 		{
 			std::cerr << "\n Generating path... Error - No available node.\n";
@@ -134,7 +137,9 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 			return;
 		}
 
+		// Bool for whether a path was been found
 		bool bPathFound = false;
+
 		// While a path has not been found
 		while (!bPathFound)
 		{
@@ -215,6 +220,7 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 					// If Node.F is less than currSmallest->f
 					if (node->f < nodeWithSmallestF->f)
 					{
+						// nodeWithSmallestF replaced with this Node
 						nodeWithSmallestF = node;
 					}
 					// Else If two Nodes have the same F value
@@ -252,9 +258,43 @@ void Pathfinding::createPathTo(std::shared_ptr<Node> targetNode)
 		}
 	}
 
+	// Else Nodes have not been intitialised
 	else std::cerr << "\n Generating path... Error - Nodes not intitialised.\n"; system("pause");
 }
 
+// Returns the Node that is closest to the position
+std::shared_ptr<Node> Pathfinding::closestNode(const ArPose kPosition)
+{
+	// In Nodes exist
+	if (m_pNodes.size() > 0)
+	{
+		// Adds the first node as closest
+		std::shared_ptr<Node> closestNode = m_pNodes.at(0);
+
+		// For all Nodes
+		for (std::shared_ptr<Node> node : m_pNodes)
+		{
+			// If distance from position to Node is smaller than position to closest Node
+			if (Utils::magnitude(sf::Vector2f(node->position.getX() - kPosition.getX(), node->position.getY() - kPosition.getY())) < Utils::magnitude(sf::Vector2f(closestNode->position.getX() - kPosition.getX(), closestNode->position.getY() - kPosition.getY())))
+			{
+				// If the Node is accessible
+				if (node->bAccessible)
+				{
+					// Replaces the closest Node
+					closestNode = node;
+				}
+			}
+		}
+
+		// Returns closest Node
+		return closestNode;
+	}
+
+	// Nodes don't exist: return nullptr
+	return nullptr;
+}
+
+// Calculates G value of a Node
 double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode)
 {
 	// Distance from the current Node and open Node
@@ -264,9 +304,9 @@ double Pathfinding::calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Nod
 	return dDistToNode + currentNode->g;
 }
 
+// Returns whether a Node is within a distance of a Line
 bool Pathfinding::nodeNearLine(const ArLineSegment kLine, const ArPose kNodePos, const double kDistance)
 {
-	// Guide - https://gist.github.com/ChickenProp/3194723
 	// Defines nod upper and lower bounds in world coordinates
 	sf::Vector2f nodeUpperBounds(kNodePos.getX() + m_dNodeDiameter*0.5, kNodePos.getY() + m_dNodeDiameter*0.5);
 	sf::Vector2f nodeLowerBounds(kNodePos.getX() - m_dNodeDiameter*0.5, kNodePos.getY() - m_dNodeDiameter*0.5);
@@ -285,17 +325,22 @@ bool Pathfinding::nodeNearLine(const ArLineSegment kLine, const ArPose kNodePos,
 		// Moves the point along the line
 		point += angleUnitVec;
 
-		sf::Vector2f vecDist(kNodePos.getX() - point.x, kNodePos.getY() - point.y);
+		// Displacement between point and Node
+		sf::Vector2f displacement(kNodePos.getX() - point.x, kNodePos.getY() - point.y);
 
-		if (Utils::magnitude(vecDist) < kDistance)
+		// If the distance between point and Node is smaller than distance param
+		if (Utils::magnitude(displacement) < kDistance)
 		{
-			return true;
+			// Return True: Node is near line
+			return true; 
 		}
 	}
-		
+
+	// Return False: Node isn't near line
 	return false;
 }
 
+// Returns whether a Node is within a vector of Nodes
 bool Pathfinding::nodeInVector(std::shared_ptr<Node> nodeToFind, std::vector<std::shared_ptr<Node>> vector)
 {
 	// If a Node in the vector is the nodeToFind: Return True
@@ -305,6 +350,7 @@ bool Pathfinding::nodeInVector(std::shared_ptr<Node> nodeToFind, std::vector<std
 	return false;
 }
 
+// Returns the distance from one Node to another
 int Pathfinding::manhattanDist(std::shared_ptr<Node> startNode, std::shared_ptr<Node> endNode)
 {
 	// Number of Nodes needed horizontally to match destination
@@ -320,6 +366,7 @@ int Pathfinding::manhattanDist(std::shared_ptr<Node> startNode, std::shared_ptr<
 	return iDistance;
 }
 
+// Returns a vector of accessible adjacent Nodes
 std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr<Node> node)
 {
 	// Defines vector of Nodes to store adjacent Nodes that are identified
@@ -328,8 +375,10 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 	// If Node exists
 	if (node != nullptr)
 	{
+		// Declares Node ptr to hold adjacent Nodes as they're processed
 		std::shared_ptr<Node> adjNode;
 
+		// For 8 cycles
 		for (unsigned int i = 1; i <= 8; i++)
 		{
 			switch (i)
@@ -379,6 +428,7 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 					// If Node at position exists
 					if (adjNode != nullptr)
 					{
+						// Adds adjacent Node to vector
 						adjNodes.push_back(adjNode);
 					}
 				} break;
@@ -428,6 +478,7 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 					// If Node at position exists
 					if (adjNode != nullptr)
 					{
+						// Adds adjacent Node to vector
 						adjNodes.push_back(adjNode);
 					}
 				} break;
@@ -477,6 +528,7 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 					// If Node at position exists
 					if (adjNode != nullptr)
 					{
+						// Adds adjacent Node to vector
 						adjNodes.push_back(adjNode);
 					}
 				} break;
@@ -526,6 +578,7 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 					// If Node at position exists
 					if (adjNode != nullptr)
 					{
+						// Adds adjacent Node to vector
 						adjNodes.push_back(adjNode);
 					}
 				} break;
@@ -536,49 +589,29 @@ std::vector<std::shared_ptr<Node>> Pathfinding::getAdjacentNodes(std::shared_ptr
 	return adjNodes;
 }
 
+// Returns a Node at a given pose
 std::shared_ptr<Node> Pathfinding::nodeFromPose(const ArPose kPosition)
 {
+	// For all Nodes
 	for (std::shared_ptr<Node> node : m_pNodes)
 	{
 		// Defines nod upper and lower bounds in world coordinates
 		ArPose nodeUpperBounds(node->position.getX() + m_dNodeDiameter*0.5, node->position.getY() + m_dNodeDiameter*0.5);
 		ArPose nodeLowerBounds(node->position.getX() - m_dNodeDiameter*0.5, node->position.getY() - m_dNodeDiameter*0.5);
 
-		// If position is within the node area
+		// If position is within the Node's area
 		if (Utils::pointInArea(kPosition, nodeUpperBounds, nodeLowerBounds))
 		{
+			// Position is within the Node's area: Return the Node
 			return node;
 		}
 	}
 
+	// No Node found: return nullptr
 	return nullptr;
 }
 
-std::shared_ptr<Node> Pathfinding::closestNode(const ArPose kPosition)
-{
-	// In Nodes exist
-	if (m_pNodes.size() > 0)
-	{
-		// Adds the first node as closest
-		std::shared_ptr<Node> closestNode = m_pNodes.at(0);
-
-		for (std::shared_ptr<Node> node : m_pNodes)
-		{
-			if (Utils::magnitude(sf::Vector2f(node->position.getX() - kPosition.getX(), node->position.getY() - kPosition.getY())) < Utils::magnitude(sf::Vector2f(closestNode->position.getX() - kPosition.getX(), closestNode->position.getY() - kPosition.getY())))
-			{
-				if (node->bAccessible)
-				{
-					closestNode = node;
-				}
-			}
-		}
-
-		return closestNode;
-	}
-
-	return nullptr;
-}
-
+// Forms a queue of Nodes to the given Node
 void Pathfinding::queuePath(std::shared_ptr<Node> targetNode)
 {
 	// Vector for stack of Nodes to be used in path
@@ -607,6 +640,7 @@ void Pathfinding::queuePath(std::shared_ptr<Node> targetNode)
 	}
 }
 
+// Draws pathfinding representation to a display
 void Pathfinding::draw(sf::RenderTarget& target)
 {
 	// If Nodes initialised
@@ -616,78 +650,6 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		double dMinBezel = 150;
 		m_displayBezel = sf::Vector2f(dMinBezel, dMinBezel);
 
-		////sf::Vector2f windowSize(target.getSize().x, target.getSize().y);
-		//////
-		//////double dYToXRatio = m_mapSize.x / m_mapSize.y;
-		//////double dXToYRatio = m_mapSize.y / m_mapSize.x;
-		//////
-		//////double dMapToWindowXRatio = target.getSize().x / m_mapSize.x;
-		//////double dMapToWindowYRatio = target.getSize().y / m_mapSize.y;
-		//////
-		//////
-		//////double mapScaledX = m_mapSize.y * dXToYRatio;
-		//////double mapScaledY = m_mapSize.x * dXToYRatio;
-
-		//// Window
-		//double dWindowAspectRatio = windowSize.x / windowSize.y;
-		//// AR 1.7777777910232544
-		//// 1280 x 720
-		//
-		//// Map
-		//double dMapAspectRatio = m_mapSize.x / m_mapSize.y;
-		//// AR 1.6965174674987793
-		//// 17050 x 10050
-		//
-		//double dLargestMapAxis = Utils::maxDouble(m_mapSize.x, m_mapSize.y);
-		//double dLargestWindowAxis = Utils::maxDouble(windowSize.x, windowSize.y);
-		//
-		//sf::Vector2f displaySize(windowSize.x - (dMinBezel*2), windowSize.y - (dMinBezel * 2)); // 980 x 420
-		//
-		//double dWidthsIntoDisplay = displaySize.x / m_mapSize.x; // 0.057478006929159164
-		//double dHeightsIntoDisplay = displaySize.y / m_mapSize.y; // 0.041791044175624847
-		//
-		//m_displayBezel.x = dMinBezel + (Utils::minDouble(dWidthsIntoDisplay, dHeightsIntoDisplay) * m_mapSize.x); // (420 - 577.65394036575408391131373718687) = 267.46267388894523 /2 = 133.731336944472615
-		//m_displayBezel.y = dMinBezel + (Utils::minDouble(dWidthsIntoDisplay, dHeightsIntoDisplay) * m_mapSize.y);
-
-		//// Limited by Height
-		////if (dHeightsIntoDisplay < dWidthsIntoDisplay) // True
-		////{
-		////	double dWidth = displaySize.y * dMapAspectRatio; // 712.53732611105477
-		////
-		////	sf::Vector2f dMapOnDisplay(dWidth, displaySize.y); // 712.53732611105477 x 420
-		////
-		////	m_displayBezel.x = ((displaySize.x - dWidth) / 2) + 150; // (980 - 712.53732611105477) = 267.46267388894523 /2 = 133.731336944472615
-		////	m_displayBezel.y = dMinBezel;
-		////}
-		////// Limited by Width
-		////else if (dWidthsIntoDisplay < dHeightsIntoDisplay)
-		////{
-		////	double dHeight = displaySize.x / dMapAspectRatio; // 577.65394036575408391131373718687 
-		////
-		////	sf::Vector2f dMapOnDisplay(displaySize.x, dHeight); // 577.65394036575408391131373718687 x 420
-		////
-		////	m_displayBezel.y = (displaySize.y - dHeight) / 2; // (420 - 577.65394036575408391131373718687) = 267.46267388894523 /2 = 133.731336944472615
-		////	m_displayBezel.x = dMinBezel;
-		////}
-		////
-		////double Utils::minDouble(displayHeight);
-		////
-		////double remainingWidth = ; // 580
-		////
-		////m_displayBezel.x = remainingWidth/2; // 290 Bezel
-		////
-		////double dWindowToMapRatio = dWindowAspectRatio / dMapAspectRatio;
-		//
-		////double dWindowToMapRatio = dWindowAspectRatio / dMapAspectRatio;
-		////double dMapToWindowRatio = dMapAspectRatio / dWindowAspectRatio;
-		//
-		////double dLargestMapAxis = Utils::maxDouble(m_mapSize.x, m_mapSize.y);
-		//
-		////sf::Vector2f mapSizeInDisplay(target.getSize().x*dWindowToMapRatio, m_mapSize.y*dMapToWindowRatio);
-		//
-		////m_displayBezel.x = ((m_mapSize.x*dXToYRatio) * dMapToWindowRatio) / 2 + 150;
-		////m_displayBezel.y = ((m_mapSize.y*dYToXRatio) * dMapToWindowRatio) / 2 + 150;
-		
 		// Coordinate offset to convert from Aria coord system to SFML coord system with added display bezel
 		sf::Vector2f offset = sf::Vector2f(m_mapLowerBounds.getX() - m_displayBezel.x, m_mapUpperBounds.getY() + m_displayBezel.y);
 
@@ -697,7 +659,7 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		// BACKGROUND
 		rectShape.setSize(sf::Vector2f(m_mapSize.x, m_mapSize.y)); // Size of Map
 		rectShape.setFillColor(sf::Color(255.0f, 255.0f, 255.0f, 255.0f)); // White
-		rectShape.setOrigin(sf::Vector2f(0.0f, rectShape.getSize().y)); // Origin
+		rectShape.setOrigin(sf::Vector2f(0.0f, rectShape.getSize().y));
 		rectShape.setPosition(sf::Vector2f(m_mapLowerBounds.getX() - offset.x, Utils::invertDouble(m_mapLowerBounds.getY() - offset.y)));
 
 		target.draw(rectShape);

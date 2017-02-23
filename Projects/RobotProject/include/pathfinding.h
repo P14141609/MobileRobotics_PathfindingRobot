@@ -32,11 +32,11 @@ class Pathfinding
 		// Returns the Node that is closest to the position
 		std::shared_ptr<Node> closestNode(const ArPose kPosition);
 
-		// Pops the Node off the front of the path queue
-		void popPath() { m_path.pop(); }
-
 		// Draws pathfinding representation to a display
 		void draw(sf::RenderTarget& target);
+
+		// Pops the Node off the front of the path queue
+		void popPath() { m_path.pop(); }
 
 		// Returns the size of the View
 		sf::Vector2f getViewSize() { return m_mapSize + m_displayBezel*2.0f; }
@@ -65,15 +65,6 @@ class Pathfinding
 		// Diameter of the Nodes
 		double m_dNodeDiameter;
 
-		// Calculates which Nodes are accessible
-		void calcAccessibility();
-
-		// Calculates G value of a Node
-		double calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode);
-
-		// Returns whether a Node is within a distance of a Line
-		bool nodeNearLine(const ArLineSegment kLine, const ArPose kNodePos, const double kDistance);
-
 		// Two corners of the map in world coords
 		ArPose m_mapUpperBounds = ArPose(INT32_MIN, INT32_MIN);
 		ArPose m_mapLowerBounds = ArPose(INT32_MAX, INT32_MAX);
@@ -93,6 +84,15 @@ class Pathfinding
 
 		// Map Data
 		ArMap m_map;
+
+		// Calculates which Nodes are accessible
+		void calcAccessibility();
+
+		// Calculates G value of a Node
+		double calcG(std::shared_ptr<Node> currentNode, std::shared_ptr<Node> targetNode);
+
+		// Returns whether a Node is within a distance of a Line
+		bool nodeNearLine(const ArLineSegment kLine, const ArPose kNodePos, const double kDistance);
 
 		// Returns whether a Node is within a vector of Nodes
 		bool nodeInVector(std::shared_ptr<Node> nodeToFind, std::vector<std::shared_ptr<Node>> vector);
