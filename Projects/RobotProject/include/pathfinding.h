@@ -38,6 +38,27 @@ class Pathfinding
 		// Pops the Node off the front of the path queue
 		void popPath() { m_path.pop(); }
 
+		// Records the current Pose and stores it to movement history member 
+		void recordMovement()
+		{
+			// If History is not empty
+			if (!m_moveHistory.empty())
+			{
+				// If this pose was not just recorded
+				if (m_moveHistory.front() != m_pRobot->getPose())
+				{
+					// Records new Pose
+					m_moveHistory.push_back(m_pRobot->getPose());
+				}
+			}
+			// Else history is empty so add record
+			else
+			{
+				// Records new Pose
+				m_moveHistory.push_back(m_pRobot->getPose());
+			}
+		}
+
 		// Returns the size of the View
 		sf::Vector2f getViewSize() { return m_mapSize + m_displayBezel*2.0f; }
 
@@ -75,6 +96,9 @@ class Pathfinding
 		std::vector<std::shared_ptr<Node>> m_pNodes;
 		// Queue of Poses forming a path
 		std::queue<ArPose> m_path;
+
+		// Vector of Poses that track past movement
+		std::vector<ArPose> m_moveHistory;
 
 		// Whether Nodes have been initialised
 		bool m_bNodesInit = false;

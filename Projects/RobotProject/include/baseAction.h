@@ -32,7 +32,7 @@ class BaseAction : public ArAction
 		double m_dSpeed; 
 		// Change in heading
 		double m_dDeltaHeading;
-	
+
 		// Sensor data
 		Sensor m_sensor;
 

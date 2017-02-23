@@ -25,6 +25,7 @@ ArActionDesired * Path::fire(ArActionDesired d)
 {
 	desiredState.reset(); // reset the desired state (must be done)
 	calcState();
+	m_pPathfinding->recordMovement();
 
 	std::cerr << "\n Path State: " << stateToString(m_state) << '\n';
 

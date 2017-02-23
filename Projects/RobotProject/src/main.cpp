@@ -169,6 +169,7 @@ int main(int argc, char **argv)
 		std::cerr << "\n Error - Map '" << sMapDir.c_str() << "' could not be read.\n";
 		std::cerr << '\n'; system("pause");
 	}
+	// Proceed with program
 	else 
 	{
 		// Declares ArPose vairables for robot start and goal
@@ -180,6 +181,7 @@ int main(int argc, char **argv)
 		{
 			std::cerr << '\n'; system("pause");
 		}
+		// Proceed with program
 		else
 		{
 			// SFML Setup

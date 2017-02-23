@@ -720,10 +720,9 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		std::queue<ArPose> pathDupe = m_path;
 
 		// If there is a queue
-		if (pathDupe.size() > 0)
+		if (!pathDupe.empty())
 		{
-			ArPose lastPoint = m_path.front();
-
+			ArPose lastPoint = pathDupe.front();
 
 			// Sets the first point of the line at the position in front of the queue
 			line[0] = sf::Vertex(sf::Vector2f(lastPoint.getX() - offset.x, Utils::invertDouble(lastPoint.getY() - offset.y)), colour);
@@ -733,7 +732,6 @@ void Pathfinding::draw(sf::RenderTarget& target)
 
 			// Draws the line to target
 			target.draw(line, 2, sf::Lines);
-
 
 			// For every point in the path queue
 			while (!pathDupe.empty())
@@ -765,10 +763,28 @@ void Pathfinding::draw(sf::RenderTarget& target)
 			}
 		}
 
-		// ROBOT
+		// MOVEMENT HISTORY
+		// Duplicates the path queue
+		std::vector<ArPose> historyDupe = m_moveHistory;
+		
 		rectShape.setSize(sf::Vector2f(m_pRobot->getRobotLength(), m_pRobot->getRobotWidth())); // Size of Robot
-		rectShape.setFillColor(sf::Color(255.0f, 0.0f, 0.0f, 255.0f)); // Red
+		rectShape.setFillColor(sf::Color(0.0f, 0.0f, 150.0f, 10.0f)); // Translucent Blue
 		rectShape.setOrigin(rectShape.getSize()*0.5f); // Origin center
+
+		// For every point in the path queue
+		while (!historyDupe.empty())
+		{
+			// Moves the rectShape to the last historic Pose
+			rectShape.setPosition(sf::Vector2f(historyDupe.back().getX() - offset.x, Utils::invertDouble(historyDupe.back().getY() - offset.y)));
+			rectShape.setRotation(Utils::invertDouble(historyDupe.back().getTh()));
+
+			historyDupe.pop_back(); // Removes the pose from the vector
+
+			target.draw(rectShape);
+		}
+
+		// ROBOT
+		rectShape.setFillColor(sf::Color(255.0f, 0.0f, 0.0f, 255.0f)); // Red
 		rectShape.setPosition( sf::Vector2f( m_pRobot->getX() - offset.x, Utils::invertDouble(m_pRobot->getY() - offset.y) ) );
 		rectShape.setRotation(Utils::invertDouble(m_pRobot->getTh()));
 
