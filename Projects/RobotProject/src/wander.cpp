@@ -73,6 +73,8 @@ ArActionDesired * Wander::fire(ArActionDesired d)
 			desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
 			desiredState.setHeading(m_dTargetHeading); // Set the heading change of the robot
 		}break;
+
+		default: break;
 	}
 
 	return &desiredState; // give the desired state to the robot for actioning
@@ -80,12 +82,19 @@ ArActionDesired * Wander::fire(ArActionDesired d)
 
 void Wander::calcState()
 {
+	// If sensor distance has not been calculated
+	if (m_sensor.m_distance.dFront == INT32_MAX)
+	{
+		m_state = IN_SETUP;
+	}
+
 	// When no walls or objects are detected within 1.5m
-	if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) >= m_sensor.m_range.dMin)
+	else if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) >= m_sensor.m_range.dMin)
 	{
 		m_state = ACTIVE;
 	}
 
+	// Otherwise
 	else
 	{
 		m_state = IDLE;

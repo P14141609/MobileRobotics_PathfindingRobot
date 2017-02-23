@@ -141,6 +141,8 @@ ArActionDesired * Path::fire(ArActionDesired d)
 				}
 			}
 		}break;
+
+		default: break;
 	}
 
 	return &desiredState; // give the desired state to the robot for actioning
@@ -213,12 +215,19 @@ double Path::calcRMSE()
 
 void Path::calcState()
 {
-	// If no edge is within minimum range
-	if (m_sensor.m_distance.dFront > m_sensor.m_range.dMin)
+	// If sensor distance has not been calculated
+	if (m_sensor.m_distance.dFront == INT32_MAX)
+	{
+		m_state = IN_SETUP;
+	}
+
+	// Else If no edge is within minimum range
+	else if (m_sensor.m_distance.dFront > m_sensor.m_range.dMin)
 	{
 		m_state = ACTIVE;
 	}
 
+	// Otherwise
 	else
 	{
 		m_state = IDLE;

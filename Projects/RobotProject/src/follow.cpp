@@ -86,6 +86,8 @@ ArActionDesired * Follow::fire(ArActionDesired d)
 			desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
 			desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
 		}break;
+
+		default: break;
 	}
 
 	return &desiredState; // give the desired state to the robot for actioning
@@ -158,12 +160,19 @@ double Follow::calcRMSE()
 
 void Follow::calcState()
 {
-	// If there's an edge within range infront or to either side AND If all edges are greater than the minimum range
-	if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) <= m_sensor.m_range.dMax && Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) >= m_sensor.m_range.dMin)
+	// If sensor distance has not been calculated
+	if (m_sensor.m_distance.dFront == INT32_MAX)
+	{
+		m_state = IN_SETUP;
+	}
+
+	// Else If there's an edge within range infront or to either side AND If all edges are greater than the minimum range
+	else if (Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) <= m_sensor.m_range.dMax && Utils::minDouble(m_sensor.m_distance.dFront, m_sensor.m_distance.dLeft, m_sensor.m_distance.dRight) >= m_sensor.m_range.dMin)
 	{
 		m_state = ACTIVE;
 	}
 
+	// Otherwise
 	else
 	{
 		m_state = IDLE;

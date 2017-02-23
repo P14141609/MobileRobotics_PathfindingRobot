@@ -688,7 +688,7 @@ void Pathfinding::draw(sf::RenderTarget& target)
 		//
 		////m_displayBezel.x = ((m_mapSize.x*dXToYRatio) * dMapToWindowRatio) / 2 + 150;
 		////m_displayBezel.y = ((m_mapSize.y*dYToXRatio) * dMapToWindowRatio) / 2 + 150;
-
+		
 		// Coordinate offset to convert from Aria coord system to SFML coord system with added display bezel
 		sf::Vector2f offset = sf::Vector2f(m_mapLowerBounds.getX() - m_displayBezel.x, m_mapUpperBounds.getY() + m_displayBezel.y);
 

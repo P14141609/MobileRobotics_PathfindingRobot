@@ -18,7 +18,7 @@ class BaseAction : public ArAction
 	
 	protected:
 	
-		enum ActionState { IDLE, ACTIVE };
+		enum ActionState { IN_SETUP, IDLE, ACTIVE };
 		ActionState m_state = IDLE;
 		virtual void calcState() = 0;
 

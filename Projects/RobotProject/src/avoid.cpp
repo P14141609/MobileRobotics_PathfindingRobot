@@ -70,6 +70,8 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 			desiredState.setVel(m_dSpeed); // set the speed of the robot in the desired state
 			desiredState.setDeltaHeading(m_dDeltaHeading); // Set the heading change of the robot
 		}break;
+
+		default: break;
 	}
 
 	return &desiredState; // give the desired state to the robot for actioning
@@ -77,12 +79,19 @@ ArActionDesired * Avoid::fire(ArActionDesired d)
 
 void Avoid::calcState()
 {
-	// If there's an edge within the range on the front sensor
-	if (m_sensor.m_distance.dFront <= m_sensor.m_range.dMax)
+	// If sensor distance has not been calculated
+	if (m_sensor.m_distance.dFront == INT32_MAX)
+	{
+		m_state = IN_SETUP;
+	}
+
+	// Else If there's an edge within the range on the front sensor
+	else if (m_sensor.m_distance.dFront <= m_sensor.m_range.dMax)
 	{
 		m_state = ACTIVE;
 	}
 
+	// Otherwise
 	else
 	{
 		m_state = IDLE;

@@ -16,13 +16,14 @@ struct Range
 struct Distance
 {
 	// Sensor distances
-	double dFront;
-
-	double dLeftFront;
-	double dRightFront;
-
-	double dLeft;
-	double dRight;
+	// Front
+	double dFront = INT32_MAX;
+	// Two halves of Front
+	double dLeftFront = INT32_MAX;
+	double dRightFront = INT32_MAX;
+	// Sides
+	double dLeft = INT32_MAX;
+	double dRight = INT32_MAX;
 };
 
 class Sensor
