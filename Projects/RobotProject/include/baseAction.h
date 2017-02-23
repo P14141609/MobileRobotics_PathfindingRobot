@@ -41,8 +41,9 @@ class BaseAction : public ArAction
 		// Returns the string value of a state
 		static std::string stateToString(const int kiState)
 		{
-			if (kiState == 0) return "IDLE";
-			if (kiState == 1) return "ACTIVE";
+			if (kiState == 0) return "IN_SETUP";
+			if (kiState == 1) return "IDLE";
+			if (kiState == 2) return "ACTIVE";
 			else return "ERROR";
 		}
 };
